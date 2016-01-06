@@ -1,0 +1,22 @@
+{
+  "name": "lodash-mixins",
+  "version": "1.0.0",
+  "description": "Adding some other useful features to Lodash via the Mixins method",
+  "main": "index.js",
+  "scripts": {
+    "test": "lab -t 100"
+  },
+  "keywords": [
+    "lodash",
+    "underscore"
+  ],
+  "author": "Justin Hyland",
+  "license": "ISC",
+  "devDependencies": {
+    "code": "^2.1.0",
+    "lodash": "^3.10.1"
+  },
+  "dependencies": {
+    "lodash": "^3.10.1"
+  }
+}
