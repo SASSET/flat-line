@@ -75,4 +75,19 @@ bool( 'foo', [ 'bar', 'baz' ] ) === false
 // => true
 ```
 
+# _.typeof
+
+Return the type of a specific variable, much like the standard 'typeof', only with a little more functionality. This is primarily used for input from libraries/packages/modules that may convert the variable to a different type when interacting with it. For example, pretty much anything passed through the URI parameters will be a string, as well as anything passed through GetOpts, but you may want integers, for example, to actually be identified as numbers, or true/false/null/undefined strings to be identified as boolean/null/undefined. That's what the scrutinize parameter does here, it will process the variable to attempt to identify the type it originally was.
+
+```javascript
+_.typeof( [1,2] )       // array
+_.typeof( 'foo' )       // string
+_.typeof( true )        // boolean
+_.typeof( 'true' )      // string
+_.typeof( 'true',true ) // boolean
+_.typeof( null )        // null
+_.typeof( 'null' )      // string
+_.typeof( 'null',true ) // null
+```
+
 If somehow I ended up re-inventing the wheel with one of these, and they already exist.. oops.
