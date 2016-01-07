@@ -39,10 +39,7 @@ describe('_.sortObj mixin',  () => {
         expect( JSON.stringify( _.sortObj({"a":1,"b":3,"c":2}, (value, key) => value) ) ).to.equal( '{"a":1,"c":2,"b":3}' )
         done()
     })
-})
 
-
-describe('_.sortObj mixin',  () => {
     it('Non-object to throw an error', done => {
         //expect( _.sortObj( 'foo' ) ).to.throw( Error )
         expect(() => _.sortObj('foo')).to.throw(Error)

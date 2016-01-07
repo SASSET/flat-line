@@ -181,6 +181,137 @@ const mixins = {
         trues = _.union( [ 1, '1', true, 'true' ], trues )
 
         return _.indexOf( trues, !!lower === true ? value.toLowerCase() : value ) !== -1
+    },
+
+    /**
+     * Return the type of a specific variable, much like the standard 'typeof', only
+     * with a little more functionality. This is primarily used for input from
+     * libraries/packages/modules that may convert the variable to a different type
+     * when interacting with it. For example, pretty much anything passed through the
+     * URI parameters will be a string, as well as anything passed through GetOpts,
+     * but you may want integers, for example, to actually be identified as numbers, or
+     * true/false/null/undefined strings to be identified as boolean/null/undefined.
+     * That's what the scrutinize parameter does here, it will process the variable
+     * to attempt to identify the type it originally was.
+     *
+     * NOTE: If no type is matched, then the toString() value will be returned
+     *
+     * @param   {*}         value           Value to process
+     * @param   {boolean}   scrutinize      Determine if the true value type should be
+     *                                      determined through logical processing
+     * @param   {object}    returnTypes     Object of return type strings to overwrite
+     * @param   {object}    flaggedVals     Values used to determine the real value types
+     *                                      of flagged values (Only used if scrutinize is
+     *                                      enabled)
+     * @return  {string}    The variable type (string, array, object, boolean, etc)
+     * @example _.typeof( [1,2] )       // array
+     *          _.typeof( 'foo' )       // string
+     *          _.typeof( true )        // boolean
+     *          _.typeof( 'true' )      // string
+     *          _.typeof( 'true',true ) // boolean
+     *          _.typeof( null )        // null
+     *          _.typeof( 'null' )      // string
+     *          _.typeof( 'null',true ) // null
+     */
+    typeof: ( value, scrutinize, returnTypes, flaggedVals ) => {
+        // String representations of the value types (Overridden by
+        // returnTypes if defined)
+        const types = __.extend( {
+            undefined:  'undefined',
+            null:       'null',
+            string:     'string',
+            boolean:    'boolean',
+            array:      'array',
+            element:    'element',
+            regexp:     'regexp',
+            object:     'object',
+            number:     'number',
+            function:   'function',
+            unknown:    'unknown'
+        }, returnTypes || {} )
+
+        // Flagged values for string variables; EG: if string is 'true',
+        // then the it's Boolean (Overridden by flaggedVals if defined)
+        const flagged = __.extend( {
+            boolean:    [ 'true', 'false' ],
+            null:       [ 'null', 'NULL' ],
+            undefined:  [ 'undefined' ]
+        }, flaggedVals || {} )
+
+
+        // Retrieve the actual object type from the prototype
+        const objType = Object.prototype.toString.call( value )
+
+        // Attempt to regex match the type (value should be [object TYPE]
+        const objTypeRegex = objType.match( /^\[object\s(.*)\]$/ )
+
+        /* $lab:coverage:off$ */
+        // Match the type, or use the types.undefined (This shouldn't ever not
+        // match, but it helps me sleep at night)
+        const objTypeString = objTypeRegex[1] ? objTypeRegex[1].toLowerCase() : types.unknown
+        /* $lab:coverage:on$ */
+
+        if( __.isUndefined( value ) )
+            return types.undefined
+
+        if( __.isNull( value ) )
+            return types.null
+
+        // String values are what get opened to scrutiny, if enabled
+        if( __.isString( value ) ){
+            // If scrutinize isnt enabled, then just return string
+            if( !! scrutinize === false )
+                return types.string
+
+            // Numbers should be the same value if leniently compared against it's float-parsed self
+            if( parseFloat( value ) == value )
+                return types.number
+
+            // Check if this string is inside the boolean flags
+            if( __.indexOf( flagged.boolean, value ) !== -1 )
+                return types.boolean
+
+            // Check if its inside any null flags
+            if(  __.indexOf( flagged.null, value ) !== -1 )
+                return types.null
+
+            // Check if its inside any undefined flags
+            if( __.indexOf( flagged.undefined, value ) !== -1 )
+                return types.undefined
+
+            // If no parser caught it, then it must be a string
+            return types.string
+        }
+
+        // Certain check types can't be misconstrued as other types, unlike other
+        // types (such as objects), get those out of the way
+        if( __.isBoolean( value ) )
+            return types.boolean
+
+        if( __.isRegExp( value ))
+            return types.regexp
+
+        /* $lab:coverage:off$ */
+        // Disabling coverage for this, since unit testing is done via node
+        if( __.isElement( value ))
+            return types.element
+        /* $lab:coverage:on$ */
+
+        // Since isObject returns true for functions, check this before that
+        if( __.isFunction( value ))
+            return types.function
+
+        // Since isObject also returns true for arrays, check that before as well
+        if( __.isArray( value ))
+            return types.array
+
+        // isObject should be last for any possible object 'types'
+        if( __.isObject( value ))
+            return types.object
+
+        // If nothing else was caught, then return the type found via
+        // the prototypes toString() call
+        return objTypeString
     }
 }
 

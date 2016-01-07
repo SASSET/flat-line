@@ -12,7 +12,6 @@ const describe = lab.experiment;
 const after = lab.after;
 const expect = Code.expect;
 
-
 describe('_.isNumber mixin', () => {
 
     const tests = {

@@ -12,18 +12,6 @@ const describe = lab.experiment
 const after = lab.after
 const expect = Code.expect
 
-/*
-suite('math', () => {
-
-    it('returns true when 1 + 1 equals 2', (done) => {
-        expect(1+1).to.equal(2)
-        done()
-    })
-})
-*/
-
-
-
 describe('_.bool mixin', () => {
     const trues  = [ true, 'true', 1, '1' ]
     const falses = [ false, 'false', 0, '0' ]
