@@ -4,7 +4,7 @@
   "description": "Adding some other useful features to Lodash via the Mixins method",
   "main": "index.js",
   "scripts": {
-    "test": "lab -t 100"
+    "test": "lab"
   },
   "keywords": [
     "lodash",
