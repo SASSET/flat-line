@@ -62,6 +62,11 @@ describe('_.typeof mixin', () => {
         done()
     })
 
+    it('new Date() to identify as a date', done => {
+        expect( _.typeof( new Date() ) === 'date').to.equal( true )
+        done()
+    })
+
     it('foo to identify as a "bar" due to the returnTypes parameter being modified', done => {
         expect( _.typeof( 'foo', null, { string: 'bar' } ) === 'bar').to.equal( true )
         done()

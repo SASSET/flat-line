@@ -12,7 +12,7 @@ const describe = lab.experiment;
 const after = lab.after;
 const expect = Code.expect;
 
-describe('_.isNumber mixin', () => {
+describe('_.isNumeric mixin', () => {
 
     const tests = {
         is: [ 1, '1', 2, '2', '1.2' ],
@@ -23,7 +23,7 @@ describe('_.isNumber mixin', () => {
     _( tests.is )
         .forEach(n => {
             it(`Number ${n} to return true`, done => {
-                expect( _.isNumber( n )).to.equal( true );
+                expect( _.isNumeric( n )).to.equal( true );
                 done();
             });
         })
@@ -33,7 +33,7 @@ describe('_.isNumber mixin', () => {
     _( tests.isnt )
         .forEach(n => {
             it(`Number ${n} to return false`, done => {
-                expect( _.isNumber( n )).to.not.equal( true );
+                expect( _.isNumeric( n )).to.not.equal( true );
                 done();
             });
         })
