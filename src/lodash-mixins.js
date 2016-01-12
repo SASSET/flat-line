@@ -4,7 +4,7 @@
  *
  * Some of the mixins were originally from phpjs.org methods, and were modified to use some of the lodash methods,
  * and to work as a mixin with the other methods. Also, they may have been optimized a bit, as they may have originally
- * been created some time ago. The methods that were originally from phpjs.org areL utf8_encode, utf8_decode and sha1
+ * been created some time ago. The methods that were originally from phpjs.org are: utf8Encode, utf8Decode and sha1
  */
 
 
@@ -45,15 +45,15 @@ const mixins = {}
  *
  * @param   {string}    str     Standard ISO-8859-1 encoded string
  * @return  UTF-8 encoded version of the str param value
- * @example _.utf8_encode('Hello World')
+ * @example _.utf8Encode('Hello World')
  *              // => Hello World
  */
-mixins.utf8_encode = str => {
+mixins.utf8Encode = str => {
     if ( __.isNull( str ) || __.isUndefined( str ) || str === '' )
         return str
 
     if( ! __.isString( str ) && ! __.isNumber( str ))
-        throw new Error( `Illegal value type given to utf8_encode, expected a ISO-8859-1 encoded string, but received a ${typeof str}` )
+        throw new Error( `Illegal value type given to utf8Encode, expected a ISO-8859-1 encoded string, but received a ${typeof str}` )
 
     const string = (str + '') // .replace(/\r\n/g, "\n").replace(/\r/g, "\n");
     let utftext = '',
@@ -110,15 +110,15 @@ mixins.utf8_encode = str => {
  *
  * @param   {string}    str     UTF-8 encoded string
  * @return  ISO-8859-1 decoded string
- * @example _.utf8_encode('Hello World')
+ * @example _.utf8Decode('Hello World')
  *              // => Hello World
  */
-mixins.utf8_decode = str => {
+mixins.utf8Decode = str => {
     if ( __.isNull( str ) || __.isUndefined( str ) || str === '' )
         return str
 
     if( ! __.isString( str ) && ! __.isNumber( str ))
-        throw new Error( `Illegal value type given to utf8_decode, expected a UTF-8 encoded string, but received a ${typeof str}` )
+        throw new Error( `Illegal value type given to utf8Decode, expected a UTF-8 encoded string, but received a ${typeof str}` )
 
     let tmp_arr = [],
         i = 0,
@@ -208,7 +208,7 @@ mixins.sha1 = str => {
     let A, B, C, D, E
     let temp
 
-    str = mixins.utf8_encode(str)
+    str = mixins.utf8Encode(str)
     const str_len = __.size( str )
 
     const word_array = []
