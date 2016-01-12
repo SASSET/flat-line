@@ -1,24 +1,24 @@
 # Lodash Mixins
 Just some extra functionality I find myself needing in some projects
 
-[https://github.com/jhyland87/lodash-mixins#_uniqobjs|_.uniqObjs]
-[https://github.com/jhyland87/lodash-mixins#_sortobj|_.sortObj]
-[https://github.com/jhyland87/lodash-mixins#_isumeric|_.isNumeric]
-[https://github.com/jhyland87/lodash-mixins#_sortmatch|_.sortMatch]
-[https://github.com/jhyland87/lodash-mixins#_bool|_.bool]
-[https://github.com/jhyland87/lodash-mixins#_typeof|_.typeof]
-[https://github.com/jhyland87/lodash-mixins#_utf8encode|_.utf8Encode]
-[https://github.com/jhyland87/lodash-mixins#_utf8decode|_.utf8Decode]
-[https://github.com/jhyland87/lodash-mixins#_censor|_.censor]
-[https://github.com/jhyland87/lodash-mixins#_sha1|_.sha1]
-[https://github.com/jhyland87/lodash-mixins#_endwith|_.endWith]
-[https://github.com/jhyland87/lodash-mixins#_startwith|_.startWith]
-[https://github.com/jhyland87/lodash-mixins#_replace|_.replace]
-[https://github.com/jhyland87/lodash-mixins#_replaceat|_.replaceAt]
-[https://github.com/jhyland87/lodash-mixins#_type|_.type]
-[https://github.com/jhyland87/lodash-mixins#_swap|_.swap]
-[https://github.com/jhyland87/lodash-mixins#_nl2br|_.nl2br]
-[https://github.com/jhyland87/lodash-mixins#_br2nl|_.br2nl]
+[_.uniqObjs](https://github.com/jhyland87/lodash-mixins#_uniqobjs)
+[_.sortObj](https://github.com/jhyland87/lodash-mixins#_sortobj)
+[_.isNumeric](https://github.com/jhyland87/lodash-mixins#_isumeric)
+[_.sortMatch](https://github.com/jhyland87/lodash-mixins#_sortmatch)
+[_.bool](https://github.com/jhyland87/lodash-mixins#_bool)
+[_.typeof](https://github.com/jhyland87/lodash-mixins#_typeof)
+[_.utf8Encode](https://github.com/jhyland87/lodash-mixins#_utf8encode)
+[_.utf8Decode](https://github.com/jhyland87/lodash-mixins#_utf8decode)
+[_.censor](https://github.com/jhyland87/lodash-mixins#_censor)
+[_.sha1](https://github.com/jhyland87/lodash-mixins#_sha1)
+[_.endWith](https://github.com/jhyland87/lodash-mixins#_endwith)
+[_.startWith](https://github.com/jhyland87/lodash-mixins#_startwith)
+[_.replace](https://github.com/jhyland87/lodash-mixins#_replace)
+[_.replaceAt](https://github.com/jhyland87/lodash-mixins#_replaceat)
+[_.type](https://github.com/jhyland87/lodash-mixins#_type)
+[_.swap](https://github.com/jhyland87/lodash-mixins#_swap)
+[_.nl2br](https://github.com/jhyland87/lodash-mixins#_nl2br)
+[_.br2nl](https://github.com/jhyland87/lodash-mixins#_br2nl)
 
 ### _.uniqObjs
 
@@ -111,7 +111,7 @@ _.typeof( 'null',true ) // null
 
 ### _.utf8Encode
 
-Encodes an ISO-8859-1 string to UTF-8, this is meant to provide the same functionality as the PHP [http://php.net/manual/en/function.utf8-encode.php|utf8_encode] function.
+Encodes an ISO-8859-1 string to UTF-8, this is meant to provide the same functionality as the PHP [utf8_encode](http://php.net/manual/en/function.utf8-encode.php) function.
 
 ```javascript
 _.utf8Encode( 0xD800 ) === '55296'
@@ -119,7 +119,7 @@ _.utf8Encode( 0xD800 ) === '55296'
 
 ### _.utf8Decode
 
-Decodes a UTF-8 encoded string to the standard ISO-8859-1, this is meant to provide the same functionality as the PHP [http://php.net/manual/en/function.utf8-decode.php|utf8_decode] function.
+Decodes a UTF-8 encoded string to the standard ISO-8859-1, this is meant to provide the same functionality as the PHP [utf8_decode](http://php.net/manual/en/function.utf8-decode.php) function.
 
 ```javascript
 _.utf8Decode('TÃ©lÃ©com') === 'Télécom'
@@ -127,7 +127,7 @@ _.utf8Decode('TÃ©lÃ©com') === 'Télécom'
 
 ### _.censor
 
-Censor any common profanity words by replacing it with a specified word, or masking all or some of the characters with a single specified character. The words are kept in the separate data.js file, and base64 encrypted, as to not store a huge list of profanity on any users computer. The list of words is actually a list that was downloaded from a TeamSpeak related website of words to ban ([http://addons.teamspeak.com/directory/addon/miscellaneous-tools/TXT-English-badwords-bans-and-list.html|here])
+Censor any common profanity words by replacing it with a specified word, or masking all or some of the characters with a single specified character. The words are kept in the separate data.js file, and base64 encrypted, as to not store a huge list of profanity on any users computer. The list of words is actually a list that was downloaded from a TeamSpeak related website of words to ban ([here](http://addons.teamspeak.com/directory/addon/miscellaneous-tools/TXT-English-badwords-bans-and-list.html))
  **Note**: This only supports the English language, the dirty version
  **Note**: The content for this method (censored words) are all base64 encoded, meaning you wont have a file with hundreds of naughty words in your dependencies (In case that was bothering you)
 
@@ -143,7 +143,7 @@ _.censor( 'damn', '_', 'single' ) === 'd_mn' // Censor single character
 
 ### _.sha1
 
-Calculate the sha1 hash of a specific string. This is the equivalent of PHP's [http://php.net/manual/en/function.sha1.php|sha1] function.
+Calculate the sha1 hash of a specific string. This is the equivalent of PHP's [sha1](http://php.net/manual/en/function.sha1.php) function.
 
 ```javascript
 _.sha1( 'Hello World' ) === '0a4d55a8d778e5022fab701977c5d840bbc486d0'
