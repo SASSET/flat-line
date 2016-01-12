@@ -1,24 +1,24 @@
 # Lodash Mixins
 Just some extra functionality I find myself needing in some projects
 
-[_.uniqObjs](https://github.com/jhyland87/lodash-mixins#_uniqobjs)
-[_.sortObj](https://github.com/jhyland87/lodash-mixins#_sortobj)
-[_.isNumeric](https://github.com/jhyland87/lodash-mixins#_isumeric)
-[_.sortMatch](https://github.com/jhyland87/lodash-mixins#_sortmatch)
-[_.bool](https://github.com/jhyland87/lodash-mixins#_bool)
-[_.typeof](https://github.com/jhyland87/lodash-mixins#_typeof)
-[_.utf8Encode](https://github.com/jhyland87/lodash-mixins#_utf8encode)
-[_.utf8Decode](https://github.com/jhyland87/lodash-mixins#_utf8decode)
-[_.censor](https://github.com/jhyland87/lodash-mixins#_censor)
-[_.sha1](https://github.com/jhyland87/lodash-mixins#_sha1)
-[_.endWith](https://github.com/jhyland87/lodash-mixins#_endwith)
-[_.startWith](https://github.com/jhyland87/lodash-mixins#_startwith)
-[_.replace](https://github.com/jhyland87/lodash-mixins#_replace)
-[_.replaceAt](https://github.com/jhyland87/lodash-mixins#_replaceat)
-[_.type](https://github.com/jhyland87/lodash-mixins#_type)
-[_.swap](https://github.com/jhyland87/lodash-mixins#_swap)
-[_.nl2br](https://github.com/jhyland87/lodash-mixins#_nl2br)
-[_.br2nl](https://github.com/jhyland87/lodash-mixins#_br2nl)
+* *[_.uniqObjs](https://github.com/jhyland87/lodash-mixins#_uniqobjs)*
+* *[_.sortObj](https://github.com/jhyland87/lodash-mixins#_sortobj)*
+* *[_.isNumeric](https://github.com/jhyland87/lodash-mixins#_isumeric)*
+* *[_.sortMatch](https://github.com/jhyland87/lodash-mixins#_sortmatch)*
+* *[_.bool](https://github.com/jhyland87/lodash-mixins#_bool)*
+* *[_.typeof](https://github.com/jhyland87/lodash-mixins#_typeof)*
+* *[_.utf8Encode](https://github.com/jhyland87/lodash-mixins#_utf8encode)*
+* *[_.utf8Decode](https://github.com/jhyland87/lodash-mixins#_utf8decode)*
+* *[_.censor](https://github.com/jhyland87/lodash-mixins#_censor)*
+* *[_.sha1](https://github.com/jhyland87/lodash-mixins#_sha1)*
+* *[_.endWith](https://github.com/jhyland87/lodash-mixins#_endwith)*
+* *[_.startWith](https://github.com/jhyland87/lodash-mixins#_startwith)*
+* *[_.replace](https://github.com/jhyland87/lodash-mixins#_replace)*
+* *[_.replaceAt](https://github.com/jhyland87/lodash-mixins#_replaceat)*
+* *[_.type](https://github.com/jhyland87/lodash-mixins#_type)*
+* *[_.swap](https://github.com/jhyland87/lodash-mixins#_swap)*
+* *[_.nl2br](https://github.com/jhyland87/lodash-mixins#_nl2br)*
+* *[_.br2nl](https://github.com/jhyland87/lodash-mixins#_br2nl)*
 
 ### _.uniqObjs
 
