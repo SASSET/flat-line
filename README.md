@@ -190,7 +190,7 @@ _.swap( { a: 'b', c: 'd'} ) === { b: 'a', d: 'c' }
 
 ## _.nl2br
 
-Convert any new-line characters to HTML Line breaks, which can optionally be specified, but defaults to just </br>. The replaced characters consists of \r\n, \n\r, \n and \r.
+Convert any new-line characters to HTML Line breaks, which can optionally be specified, but defaults to just &lt;/br&gt;. The replaced characters consists of \r\n, \n\r, \n and \r.
 
 ```javascript
 _.nl2br("One\r\nTwo\n\rThree\nFour\rFive") === 'One</br>Two</br>Three</br>Four</br>Five'
@@ -198,7 +198,7 @@ _.nl2br("One\r\nTwo\n\rThree\nFour\rFive") === 'One</br>Two</br>Three</br>Four</
 
 ## _.br2nl
 
-Complete opposite of the _.nl2br - This replaces any HTML Line breaks with the line return character, which can optionally be specified, but defaults to just \r\n. The HTML break replaced is </br>, <br>, </BR> or <BR>
+Complete opposite of the _.nl2br - This replaces any HTML Line breaks with the line return character, which can optionally be specified, but defaults to just \r\n. The HTML break replaced is &lt;/br&gt;, &lt;br&gt;, &lt;/BR&gt; or &lt;BR&gt;
 
 ```javascript
 _.nl2br("One<br>Two</br>Three</BR>Four<BR>Five") === 'One\r\nTwo\r\nThree\r\nFour\r\nFive'
