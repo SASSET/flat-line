@@ -1,24 +1,24 @@
 # Lodash Mixins
 Just some extra functionality I find myself needing in some projects
 
-* *[_.uniqObjs](https://github.com/jhyland87/lodash-mixins#_uniqobjs)*
-* *[_.sortObj](https://github.com/jhyland87/lodash-mixins#_sortobj)*
-* *[_.isNumeric](https://github.com/jhyland87/lodash-mixins#_isumeric)*
-* *[_.sortMatch](https://github.com/jhyland87/lodash-mixins#_sortmatch)*
-* *[_.bool](https://github.com/jhyland87/lodash-mixins#_bool)*
-* *[_.typeof](https://github.com/jhyland87/lodash-mixins#_typeof)*
-* *[_.utf8Encode](https://github.com/jhyland87/lodash-mixins#_utf8encode)*
-* *[_.utf8Decode](https://github.com/jhyland87/lodash-mixins#_utf8decode)*
-* *[_.censor](https://github.com/jhyland87/lodash-mixins#_censor)*
-* *[_.sha1](https://github.com/jhyland87/lodash-mixins#_sha1)*
-* *[_.endWith](https://github.com/jhyland87/lodash-mixins#_endwith)*
-* *[_.startWith](https://github.com/jhyland87/lodash-mixins#_startwith)*
-* *[_.replace](https://github.com/jhyland87/lodash-mixins#_replace)*
-* *[_.replaceAt](https://github.com/jhyland87/lodash-mixins#_replaceat)*
-* *[_.type](https://github.com/jhyland87/lodash-mixins#_type)*
-* *[_.swap](https://github.com/jhyland87/lodash-mixins#_swap)*
-* *[_.nl2br](https://github.com/jhyland87/lodash-mixins#_nl2br)*
-* *[_.br2nl](https://github.com/jhyland87/lodash-mixins#_br2nl)*
+* **[_.uniqObjs](https://github.com/jhyland87/lodash-mixins#_uniqobjs)** - Return only the unique plain objects from a collection of plain objects
+* **[_.sortObj](https://github.com/jhyland87/lodash-mixins#_sortobj)** - Return a copy of the object with the content sorted by the keys
+* **[_.isNumeric](https://github.com/jhyland87/lodash-mixins#_isumeric)** - Checks if a value is numeric, also able to determine if a string value is numeric (useful for GetOpts or URI Params)
+* **[_.sortMatch](https://github.com/jhyland87/lodash-mixins#_sortmatch)** - Checks if the sorted version of two objects or arrays match
+* **[_.bool](https://github.com/jhyland87/lodash-mixins#_bool)** - Checks if a string (or boolean) object is boolean (again, useful for GetOpts or URI Params)
+* **[_.typeof](https://github.com/jhyland87/lodash-mixins#_typeof)** - Somewhat like the standard `typeof` operator, but can also parse strings as other possible values ('true' can be boolean, '1' can be number, etc)
+* **[_.utf8Encode](https://github.com/jhyland87/lodash-mixins#_utf8encode)** - Encodes an ISO-8859-1 string to UTF-8, this is meant to provide the same functionality as the PHP [utf8_encode](http://php.net/manual/en/function.utf8-encode.php) function
+* **[_.utf8Decode](https://github.com/jhyland87/lodash-mixins#_utf8decode)** - Decodes a UTF-8 encoded string to the standard ISO-8859-1, this is meant to provide the same functionality as the PHP [utf8_decode](http://php.net/manual/en/function.utf8-decode.php) function
+* **[_.censor](https://github.com/jhyland87/lodash-mixins#_censor)** - Censor common English profanity
+* **[_.sha1](https://github.com/jhyland87/lodash-mixins#_sha1)** - Calculate the sha1 hash of a specific string. This is the equivalent of PHP's [sha1](http://php.net/manual/en/function.sha1.php) function
+* **[_.endWith](https://github.com/jhyland87/lodash-mixins#_endwith)** - Ensure a specific string ends with a certain character
+* **[_.startWith](https://github.com/jhyland87/lodash-mixins#_startwith)** - Ensure a specific string starts with a certain character
+* **[_.replace](https://github.com/jhyland87/lodash-mixins#_replace)** - This performs a series of replacements in a string, using the items within an object/array. Quicker than chaining a bunch of `replace()`
+* **[_.replaceAt](https://github.com/jhyland87/lodash-mixins#_replaceat)** - Substitute specific characters within a string with a specified replacement.
+* **[_.type](https://github.com/jhyland87/lodash-mixins#_type)** - Return items true type by grabbing the 2nd string content from Object.prototype.toString.call, as opposed to the less-specific 'typeof'
+* **[_.swap](https://github.com/jhyland87/lodash-mixins#_swap)** - Return a version of the provided object with the keys/values swapped
+* **[_.nl2br](https://github.com/jhyland87/lodash-mixins#_nl2br)** - Replaces any line return variants with HTML line breaks
+* **[_.br2nl](https://github.com/jhyland87/lodash-mixins#_br2nl)** - Replaces any variants of the HTML line break tag with the line return character
 
 ### _.uniqObjs
 
