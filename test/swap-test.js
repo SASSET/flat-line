@@ -14,7 +14,7 @@ const expect = Code.expect
 
 describe('_.swap mixin', () => {
     it('should swap the keys/values in an object with two elements', done => {
-        expect( JSON.stringify( _.swap({a:'b', c:'d'}) ) === '{"b":"a","d":"c"}' ).to.equal( true )
+        expect( JSON.stringify( _.swap( {a:'b', c:'d'} ) ) === '{"b":"a","d":"c"}' ).to.equal( true )
         done()
     })
 

@@ -90,4 +90,119 @@ _.typeof( 'null' )      // string
 _.typeof( 'null',true ) // null
 ```
 
-If somehow I ended up re-inventing the wheel with one of these, and they already exist.. oops.
+## _.utf8_encode
+
+Encodes an ISO-8859-1 string to UTF-8, this is meant to provide the same functionality as the PHP [utf8_encode|http://php.net/manual/en/function.utf8-encode.php] function.
+
+```javascript
+_.utf8_encode( 0xD800 ) === '55296'
+```
+
+## _.utf8_decode
+
+Decodes a UTF-8 encoded string to the standard ISO-8859-1, this is meant to provide the same functionality as the PHP [utf8_decode|http://php.net/manual/en/function.utf8-decode.php] function.
+
+```javascript
+_.utf8_decode('TÃ©lÃ©com') === 'Télécom'
+```
+
+## _.censor
+
+Censor any common profanity words by replacing it with a specified word, or masking all or some of the characters with a single specified character. The words are kept in the separate data.js file, and base64 encrypted, as to not store a huge list of profanity on any users computer. The list of words is actually a list that was downloaded from a TeamSpeak related website of words to ban ([here|http://addons.teamspeak.com/directory/addon/miscellaneous-tools/TXT-English-badwords-bans-and-list.html])
+ **Note**: This only supports the English language, the dirty version
+ **Note**: The content for this method (censored words) are all base64 encoded, meaning you wont have a file with hundreds of naughty words in your dependencies (In case that was bothering you)
+
+ ```javascript
+_.censor( 'damn' ) === 'd**n' // Partial censor (default)
+_.censor( 'damn', '!' ) === 'd!!n' // Partial with altered mask
+_.censor( 'damn', '#', 'full' ) === '####' // Full censor
+_.censor( 'damn', '#', 'firstlast' ) === '#am#' // Censor first and last letters
+_.censor( 'damn', null, 'middle' ) === 'd**n' // Censor middle characters
+_.censor( 'damn', '-censored-' ) === '-censored-' // Censor entire word (If mask is more than a single character)
+_.censor( 'damn', '_', 'single' ) === 'd_mn' // Censor single character
+```
+
+## _.sha1
+
+Calculate the sha1 hash of a specific string. This is the equivalent of PHP's [sha1|http://php.net/manual/en/function.sha1.php] function.
+
+```javascript
+_.sha1( 'Hello World' ) === '0a4d55a8d778e5022fab701977c5d840bbc486d0'
+_.sha1('TÃ©lÃ©com') === '1472543473c082833b239fee0f615b284b970519'
+```
+
+## _.endWith
+
+Ensure a specific string ends with a certain character
+
+```javascript
+_.endWith('/User/john.doe/Documents', '/') === '/User/john.doe/Documents/'
+_.endWith('Something else.', '.') === 'Something else.'
+```
+
+## _.startWith
+
+Ensure a specific string starts with a certain character
+
+```javascript
+_.startWith('Documents/', '~/') === '~/Documents/'
+_.startWith('Something else.', '.') === 'Something else.'
+_( 'Using startsWith and endsWith together' ).startWith('(').endWith(')').value() === '(Using startsWith and endsWith together)'
+```
+
+## _.replace
+
+This performs a series of replacements in a string, using the items within an object/array. Just a quicker/easier way than chaining .replace() over and over again. The replacements can be an array of arrays, an array of objects, or an object
+
+```javascript
+_.replace( 'test', { t: 'T'} ) === 'TesT'
+_.replace( 'foo', { FOO: 'bar'}, 'i' ) === 'bar'
+_.replace( 'Windows XP', [{ windows: 'Linux'}, {xp: 'RHEL'}], 'i' ) === 'Linux RHEL'
+```
+
+## _.replaceAt
+
+Substitute specific characters within a string with a specified replacement. Replacement positions are specified by either a single (numeric) value, or an array of numeric values
+
+```javascript
+_.replaceAt( 'baz', 2, 'r') === 'bar'
+_.replaceAt( 'bad-word', [1,2,5,6], '*') === 'b**-w**d'
+_.replaceAt( 'Hello World', [6,7,8,9,10] )=== 'Hello ?????'
+```
+
+## _.type
+
+Return items true type by grabbing the 2nd string content from Object.prototype.toString.call, as opposed to the less-specific 'typeof'
+
+```javascript
+_.type([]) === 'array'
+_.type({}) === 'object'
+_.type(() => {}) === 'function'
+```
+
+## _.swap
+
+Swap the keys and values of a simple plain object
+
+```javascript
+_.swap( { a: 'b', c: 'd'} ) === { b: 'a', d: 'c' }
+```
+
+## _.nl2br
+
+Convert any new-line characters to HTML Line breaks, which can optionally be specified, but defaults to just </br>. The replaced characters consists of \r\n, \n\r, \n and \r.
+
+```javascript
+_.nl2br("One\r\nTwo\n\rThree\nFour\rFive") === 'One</br>Two</br>Three</br>Four</br>Five'
+ ```
+
+## _.br2nl
+
+Complete opposite of the _.nl2br - This replaces any HTML Line breaks with the line return character, which can optionally be specified, but defaults to just \r\n. The HTML break replaced is </br>, <br>, </BR> or <BR>
+
+```javascript
+_.nl2br("One<br>Two</br>Three</BR>Four<BR>Five") === 'One\r\nTwo\r\nThree\r\nFour\r\nFive'
+ ```
+
+
+**Note:** If somehow I ended up re-inventing the wheel with one of these, and they already exist.. oops.

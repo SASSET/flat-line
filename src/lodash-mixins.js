@@ -161,7 +161,7 @@ mixins.utf8_decode = str => {
 }
 
 /**
- * Calculate the sha1 hash of a specific string. This is the equivilent of PHP's sha1()
+ * Calculate the sha1 hash of a specific string. This is the equivalent of PHP's sha1()
  * function.
  *
  * @param   {string}    str     String to calculate hash for
