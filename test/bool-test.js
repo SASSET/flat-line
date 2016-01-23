@@ -16,45 +16,45 @@ describe('_.bool mixin', () => {
     const trues  = [ true, 'true', 1, '1' ]
     const falses = [ false, 'false', 0, '0' ]
 
-    _( trues )
+    _( trues ).chain()
         .forEach( b => {
-            it(`${b} (Type ${typeof b}) to equal true`, done => {
-                expect( _.bool( b ) === true ).to.equal( true )
+            it(`should equal true when given ${b} (typeof: ${typeof b})`, done => {
+                expect( _.bool( b )  ).to.equal( true )
                 done()
             })
         })
         .commit()
 
-    _( falses )
+    _( falses ).chain()
         .forEach( b => {
-            it(`${b} (Type ${typeof b}) to equal false`, done => {
+            it(`should equal false when given ${b} (typeof: ${typeof b})`, done => {
                 expect( _.bool( b ) === false ).to.equal( true )
                 done()
             })
         })
         .commit()
 
-    it('String "foo" to not equal true', done => {
-        expect( _.bool( 'foo' ) === true ).to.equal( false )
+    it('should return false when given string "foo"', done => {
+        expect( _.bool( 'foo' ) ).to.equal( false )
         done()
     })
 
-    it('String "foo" to equal true (with array of additional true types)', done => {
-        expect( _.bool( 'foo', ['foo','bar'] ) === true ).to.equal( true )
+    it('should return true when given string "foo", since foo was provided as an additional true-type value in an ARRAY', done => {
+        expect( _.bool( 'foo', ['foo','bar'] ) ).to.equal( true )
         done()
     })
 
-    it('Custom true type "bar" to equal true', done => {
-        expect( _.bool( 'bar', 'bar' ) === true ).to.equal( true )
+    it('should return true when given string "foo", since foo was provided as an additional true-type value', done => {
+        expect( _.bool( 'bar', 'bar' ) ).to.equal( true )
         done()
     })
 
-    it('Custom true type "BAZ" to equal true', done => {
-        expect( _.bool( 'BAZ', 'baz', true ) === true ).to.equal( true )
+    it('should return true when given string "BAZ", since baz was provided as an additional true-type value, and case-insensitive matching was enabled', done => {
+        expect( _.bool( 'BAZ', 'baz', true ) ).to.equal( true )
         done()
     })
 
-    it('Illegal additional true type to throw an error', done => {
+    it('should throw an error, since the 2nd parameter for additional true-types was an object (should be string or array)', done => {
         expect(() => _.bool( 'foo', {bar: 'baz'} )).to.throw( Error )
         done()
     })

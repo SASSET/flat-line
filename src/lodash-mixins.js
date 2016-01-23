@@ -326,6 +326,37 @@ mixins.hash = ( str, salt ) => {
 }
 
 /**
+ * Return a randomly generated string - at a specific length
+ *
+ * @param   {number}    length  Length of the desored string (Default: 20)
+ * @return  {string}
+ * @todo    Add the ability to specify the 'possible' string characters
+ * @example _.randStr( 15 )
+ *              // => gyC8Q9MABoEjGK6
+ */
+mixins.randStr = ( length ) => {
+    length = length || 20
+
+    if( ! mixins.isNumeric( length ))
+        throw new Error('_.randStr needs a numeric value')
+
+    let result = ''
+
+    const possible = [
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        'abcdefghijklmnopqrstuvwxyz',
+        '0123456789',
+        '$./'
+        //'`~!@#$%^&*()-_=+[{]}\\|\'";:/?.>,<'
+    ].join('')
+
+    for( let i=0; i < parseInt( length ); i++ )
+        result += possible.charAt(Math.floor(Math.random() * possible.length))
+
+    return result
+}
+
+/**
  * Substitute specific characters within a string with a specified replacement.
  * Replacement positions are specified by either a single (numeric) value, or an
  * array of numeric values
@@ -920,34 +951,6 @@ mixins.censor = ( word, masker, maskType ) => {
 }
 
 /**
- * Return a randomly generated string - at a specific length
- *
- * @param   {number}    length  Length of the desored string (Default: 20)
- * @return  {string}
- * @todo    Add the ability to specify the 'possible' string characters
- * @example _.randStr( 15 )
- *              // => gyC8Q9MABoEjGK6
- */
-mixins.randStr = ( length ) => {
-    let result = ''
-
-    length = length || 20
-
-    const possible = [
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-        'abcdefghijklmnopqrstuvwxyz',
-        '0123456789',
-        '$./'
-        //'`~!@#$%^&*()-_=+[{]}\\|\'";:/?.>,<'
-    ].join('')
-
-    for( let i=0; i < parseInt( length ); i++ )
-        result += possible.charAt(Math.floor(Math.random() * possible.length))
-
-    return result
-}
-
-/**
  * Generate a salted hash of a specified password string - Similar to PHPs
  * password_hash function, which returns a string with the hash AND the salt,
  * making it easier to store in a database, and easier to verify
@@ -959,7 +962,10 @@ mixins.randStr = ( length ) => {
  */
 mixins.passwordHash = ( password ) => {
     if( ! password )
-        return false
+        throw new Error('No password was given to hash')
+
+    if( ! _.isString( password ))
+        throw new Error('Must provide a STRING as a password')
 
     // Generate the salt
     // THIS MUST NOT CHANGE! If this value is not the same as what
@@ -983,6 +989,16 @@ mixins.passwordHash = ( password ) => {
  *              // => true
  */
 mixins.passwordVerify = ( password, passwdHash ) => {
+    if( ! password || ! passwdHash )
+        throw new Error('Need to provide both a password and a hash to verify')
+
+    if( ! _.isString( password ) || ! _.isString( passwdHash ))
+        throw new Error('Password and hash both need to be strings')
+
+    // If the hash isn't even the proper length, don't bother checking
+    if( passwdHash.length !== 108 )
+        return false
+
     // Get the salt from the password hash - first 20 chars
     const salt = passwdHash.substr( 0, 20 )
     // Get the password hash, everything after the first 20 chars
