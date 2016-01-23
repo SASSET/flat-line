@@ -13,6 +13,11 @@ const after = lab.after
 const expect = Code.expect
 
 describe('_.randStr mixin', () => {
+    it('should not match the same randomly generated string that was generated again', done => {
+        expect( _.randStr() ).to.not.equal( _.randStr() )
+        done()
+    })
+
     it('should return a random string 15 characters long (when given a numeric value)', done => {
         expect( _.randStr(15).length ).to.equal( 15 )
         done()
