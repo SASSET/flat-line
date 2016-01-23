@@ -13,6 +13,7 @@ const after = lab.after
 const expect = Code.expect
 
 describe('_.sha1 mixin', () => {
+
     it('should return 0a4d55a8d778e5022fab701977c5d840bbc486d0 when given "Hello World"', done => {
         expect( _.sha1( 'Hello World' ) === '0a4d55a8d778e5022fab701977c5d840bbc486d0' ).to.equal( true )
         done()

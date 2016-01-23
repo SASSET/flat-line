@@ -19,11 +19,12 @@
  * - Sanatization? (SQL Injection, XSS prevention, etc)
  * - Alternator: https://codeigniter.com/user_guide/helpers/string_helper.html#alternator
  */
-const _   = require('lodash')
+const _ = require('lodash')
 
 // Get a fresh copy of lodash, since implementing mixins in the instance
 // being used to add the mixins, doesn't work very well
 const __ = _.runInContext()
+const crypto = require('crypto')
 
 const _internals = {
     alternator: 0,
@@ -49,10 +50,10 @@ const mixins = {}
  *              // => Hello World
  */
 mixins.utf8Encode = str => {
-    if ( __.isNull( str ) || __.isUndefined( str ) || str === '' )
+    if ( _.isNull( str ) || _.isUndefined( str ) || str === '' )
         return str
 
-    if( ! __.isString( str ) && ! __.isNumber( str ))
+    if( ! _.isString( str ) && ! _.isNumber( str ))
         throw new Error( `Illegal value type given to utf8Encode, expected a ISO-8859-1 encoded string, but received a ${typeof str}` )
 
     const string = (str + '') // .replace(/\r\n/g, "\n").replace(/\r/g, "\n");
@@ -61,7 +62,7 @@ mixins.utf8Encode = str => {
         start, end
 
     start = end = 0
-    stringl = __.size( string )
+    stringl = _.size( string )
     for (let n = 0; n < stringl; n++) {
         let c1 = string.charCodeAt(n)
         let enc = null
@@ -89,7 +90,7 @@ mixins.utf8Encode = str => {
                 (c1 >> 18) | 240, ((c1 >> 12) & 63) | 128, ((c1 >> 6) & 63) | 128, (c1 & 63) | 128
             )
         }
-        if ( ! __.isNull( enc )) {
+        if ( ! _.isNull( enc )) {
             if (end > start)
                 utftext += string.slice(start, end)
 
@@ -114,10 +115,10 @@ mixins.utf8Encode = str => {
  *              // => Hello World
  */
 mixins.utf8Decode = str => {
-    if ( __.isNull( str ) || __.isUndefined( str ) || str === '' )
+    if ( _.isNull( str ) || _.isUndefined( str ) || str === '' )
         return str
 
-    if( ! __.isString( str ) && ! __.isNumber( str ))
+    if( ! _.isString( str ) && ! _.isNumber( str ))
         throw new Error( `Illegal value type given to utf8Decode, expected a UTF-8 encoded string, but received a ${typeof str}` )
 
     let tmp_arr = [],
@@ -130,7 +131,7 @@ mixins.utf8Decode = str => {
 
     str += ''
 
-    while ( i < __.size( str ) ) {
+    while ( i < _.size( str ) ) {
         c1 = str.charCodeAt(i);
         if (c1 <= 191) {
             tmp_arr[ac++] = String.fromCharCode(c1)
@@ -209,7 +210,7 @@ mixins.sha1 = str => {
     let temp
 
     str = mixins.utf8Encode(str)
-    const str_len = __.size( str )
+    const str_len = _.size( str )
 
     const word_array = []
 
@@ -236,14 +237,14 @@ mixins.sha1 = str => {
 
     word_array.push(i)
 
-    while ((__.size( word_array ) % 16) != 14) {
+    while ((_.size( word_array ) % 16) != 14) {
         word_array.push(0)
     }
 
     word_array.push(str_len >>> 29)
     word_array.push((str_len << 3) & 0x0ffffffff)
 
-    for (blockstart = 0; blockstart < __.size( word_array ); blockstart += 16) {
+    for (blockstart = 0; blockstart < _.size( word_array ); blockstart += 16) {
         for (i = 0; i < 16; i++) {
             W[i] = word_array[blockstart + i]
         }
@@ -304,6 +305,27 @@ mixins.sha1 = str => {
 }
 
 /**
+ * Generate a hash of a given string, using the provided salt
+ *
+ * @param   {string}    str     String to hash
+ * @param   {string}    salt    Salt to use for hash
+ * @return  {string}    base64 encoded hash
+ * @example _.hash('superSecretPassword','secret-salt')
+ *              // => ebA3UZET3LDQWzl <cut> TUnV5oRxAvOLsA==
+ */
+mixins.hash = ( str, salt ) => {
+    if( ! _.isString( str ) || ! _.isString( salt ))
+        throw new Error('_.hash() requires two string parameters, a string to hash and a salt')
+
+    const h = crypto.createHash('sha512')
+
+    h.update(str)
+    h.update(salt)
+
+    return h.digest('base64')
+}
+
+/**
  * Substitute specific characters within a string with a specified replacement.
  * Replacement positions are specified by either a single (numeric) value, or an
  * array of numeric values
@@ -322,10 +344,10 @@ mixins.sha1 = str => {
  */
 mixins.replaceAt = ( str, index, character ) => {
     character = character || '?'
-    if( __.isArray( index ) ){
+    if( _.isArray( index ) ){
         return __( str )
             .map((s, i) => {
-                if( __.indexOf(index, i ) === -1 )
+                if( _.indexOf(index, i ) === -1 )
                     return s
                 else
                     return character
@@ -379,29 +401,29 @@ mixins.type = item => {
  *              // => Linux RHEL
  */
 mixins.replace = ( str, replacements, modifiers ) => {
-    if( ! str || ! __.isString(str) )
+    if( ! str || ! _.isString(str) )
         return str
 
     if( ! replacements )
         return str
 
-    if( ! __.isPlainObject( replacements ) && ! __.isArray( replacements ) )
+    if( ! _.isPlainObject( replacements ) && ! _.isArray( replacements ) )
         throw new Error(`Replacements need to be an array or plain object, you gave us a ${mixins.type(str)}`)
 
     // If the replacements is an array, convert it to an object (validate the structure in the process)
-    if( __.isArray( replacements ) ) {
+    if( _.isArray( replacements ) ) {
         const replacementsObj = {}
 
-        __.forEach( replacements, r => {
-            if( __.isArray(r)) {
-                if( __.isUndefined( r[0] ) || __.isUndefined( r[1] ) ) {
+        _.forEach( replacements, r => {
+            if( _.isArray(r)) {
+                if( _.isUndefined( r[0] ) || _.isUndefined( r[1] ) ) {
                     throw new Error( 'Replacement structure illegal - Array of unfulfilled array' )
                 }
                 else {
                     replacementsObj[ r[ 0 ] ] = r[ 1 ]
                 }
             }
-            else if(__.isPlainObject(r)) {
+            else if(_.isPlainObject(r)) {
                 replacementsObj[ Object.keys(r)[0]] = r[Object.keys(r)[0]]
             }
             else {
@@ -413,7 +435,7 @@ mixins.replace = ( str, replacements, modifiers ) => {
     }
 
     // Execute the replacements!
-    __.forEach( replacements, ( r, f ) => {
+    _.forEach( replacements, ( r, f ) => {
         str = str.replace( new RegExp( f, `g${modifiers || ''}` ), r )
     })
 
@@ -428,7 +450,7 @@ mixins.replace = ( str, replacements, modifiers ) => {
  *              // => {b:'a', d:'c'}
  */
 mixins.swap = obj => {
-    if( ! __.isPlainObject( obj ))
+    if( ! _.isPlainObject( obj ))
         throw new Error(`Only plain objects can be swapped, you gave us a ${mixins.type(obj)}`)
 
     const result = {}
@@ -457,7 +479,7 @@ mixins.swap = obj => {
  */
 mixins.uniqObjs = arr => {
     // Make sure that the arr parameter is a defined & populated array of objects
-    if( ! __.isArray( arr ) || ! arr.length || ! __.isObject( arr[0] ) )
+    if( ! _.isArray( arr ) || ! arr.length || ! _.isObject( arr[0] ) )
         return false
 
     const uniqs = []
@@ -465,11 +487,11 @@ mixins.uniqObjs = arr => {
     // Filter out the duplicate objects within the array by checking if
     // the stringified object value already exist in the temporary uniqs
     // array (while adding them to the variable)
-    return __.filter( arr, ( obj ) => {
+    return _.filter( arr, ( obj ) => {
         // Use _.sortObj to sort the contents of the object by the keys, since stringify
         // will use the current order (which means identical objects in different orders
         // will be seen as discrepancies)
-        if( __.indexOf( uniqs, JSON.stringify( mixins.sortObj( obj ) ) ) === -1 ){
+        if( _.indexOf( uniqs, JSON.stringify( mixins.sortObj( obj ) ) ) === -1 ){
             uniqs.push( JSON.stringify( mixins.sortObj( obj ) ) )
             return true
         }
@@ -502,24 +524,24 @@ mixins.uniqObjs = arr => {
  */
 mixins.sortObj = ( obj, comparator ) => {
     // Make sure we were given an object...
-    if( ! __.isObject( obj ))
+    if( ! _.isObject( obj ))
         throw new Error(`_.sortObj expects an object obj is: ${mixins.type(obj)}`)
 
     // If comparator is provided, then it needs to be a function, if it isn't
     // a function, then throw an error
-    if( ! __.isUndefined( comparator ) && ! __.isFunction( comparator ) )
+    if( ! _.isUndefined( comparator ) && ! _.isFunction( comparator ) )
         throw new Error(`_.sortObj expects the comparator to be a function (if defined), but received a: ${mixins.type(comparator)}`)
 
     // Create an array of the object keys, sorted either alpha/numeric
     // by default, or using the comparator if defined
-    const keys = __.sortBy( __.keys( obj ), key => {
-        return __.isFunction( comparator ) ? comparator( obj[ key ], key ) : key
+    const keys = _.sortBy( _.keys( obj ), key => {
+        return _.isFunction( comparator ) ? comparator( obj[ key ], key ) : key
     })
 
     // Return a newly created object which uses the keys in the array
     // created above, and grabs the associated data from the object
     // provided
-    return __.object( keys, __.map( keys, key => {
+    return _.object( keys, _.map( keys, key => {
         return obj[ key ]
     }))
 }
@@ -542,7 +564,7 @@ mixins.sortObj = ( obj, comparator ) => {
  *
  */
 mixins.isNumeric = ( num ) => {
-    return __.isNumber( num ) || parseFloat( num ) == num
+    return _.isNumber( num ) || parseFloat( num ) == num
 }
 
 /**
@@ -562,17 +584,17 @@ mixins.isNumeric = ( num ) => {
  *
  */
 mixins.sortMatch = ( object, source, customizer ) => {
-    if( __.isUndefined( object ) || __.isUndefined( source ))
+    if( _.isUndefined( object ) || _.isUndefined( source ))
         throw new Error('Must define two same-type values to sort and match')
 
     if( mixins.type( object ) !== mixins.type( source ))
         return false
 
-    if( __.isPlainObject( object )) {
+    if( _.isPlainObject( object )) {
         object = mixins.sortObj( object )
         source = mixins.sortObj( source )
     }
-    else if( __.isArray( object )) {
+    else if( _.isArray( object )) {
         object = object.sort()
         source = source.sort()
     }
@@ -580,7 +602,7 @@ mixins.sortMatch = ( object, source, customizer ) => {
         throw new Error('test')
     }
 
-    return __.isMatch( object, source, customizer )
+    return _.isMatch( object, source, customizer )
 }
 
 /**
@@ -651,7 +673,7 @@ mixins.bool = ( value, trues, lower ) => {
 mixins.typeof = ( value, scrutinize, returnTypes, flaggedVals ) => {
     // String representations of the value types (Overridden by
     // returnTypes if defined)
-    const types = __.extend( {
+    const types = _.extend( {
         undefined:  'undefined',
         null:       'null',
         string:     'string',
@@ -668,7 +690,7 @@ mixins.typeof = ( value, scrutinize, returnTypes, flaggedVals ) => {
 
     // Flagged values for string variables; EG: if string is 'true',
     // then the it's Boolean (Overridden by flaggedVals if defined)
-    const flagged = __.extend( {
+    const flagged = _.extend( {
         boolean:    [ 'true', 'false' ],
         null:       [ 'null', 'NULL' ],
         undefined:  [ 'undefined' ]
@@ -687,14 +709,14 @@ mixins.typeof = ( value, scrutinize, returnTypes, flaggedVals ) => {
     //const objTypeString = objTypeRegex[1] ? objTypeRegex[1].toLowerCase() : types.unknown
     /* $lab:coverage:on$ */
 
-    if( __.isUndefined( value ) )
+    if( _.isUndefined( value ) )
         return types.undefined
 
-    if( __.isNull( value ) )
+    if( _.isNull( value ) )
         return types.null
 
     // String values are what get opened to scrutiny, if enabled
-    if( __.isString( value ) ){
+    if( _.isString( value ) ){
         // If scrutinize isnt enabled, then just return string
         if( !! scrutinize === false )
             return types.string
@@ -704,15 +726,15 @@ mixins.typeof = ( value, scrutinize, returnTypes, flaggedVals ) => {
             return types.number
 
         // Check if this string is inside the boolean flags
-        if( __.indexOf( flagged.boolean, value ) !== -1 )
+        if( _.indexOf( flagged.boolean, value ) !== -1 )
             return types.boolean
 
         // Check if its inside any null flags
-        if(  __.indexOf( flagged.null, value ) !== -1 )
+        if(  _.indexOf( flagged.null, value ) !== -1 )
             return types.null
 
         // Check if its inside any undefined flags
-        if( __.indexOf( flagged.undefined, value ) !== -1 )
+        if( _.indexOf( flagged.undefined, value ) !== -1 )
             return types.undefined
 
         // If no parser caught it, then it must be a string
@@ -721,34 +743,34 @@ mixins.typeof = ( value, scrutinize, returnTypes, flaggedVals ) => {
 
     // Certain check types can't be misconstrued as other types, unlike other
     // types (such as objects), get those out of the way
-    if( __.isBoolean( value ) )
+    if( _.isBoolean( value ) )
         return types.boolean
 
-    if( __.isNumber( value ) )
+    if( _.isNumber( value ) )
         return types.number;
 
-    if( __.isDate( value ) )
+    if( _.isDate( value ) )
         return types.date
 
-    if( __.isRegExp( value ) )
+    if( _.isRegExp( value ) )
         return types.regexp
 
     /* $lab:coverage:off$ */
     // Disabling coverage for this, since unit testing is done via node
-    if( __.isElement( value ) )
+    if( _.isElement( value ) )
         return types.element
     /* $lab:coverage:on$ */
 
     // Since isObject returns true for functions, check this before that
-    if( __.isFunction( value ) )
+    if( _.isFunction( value ) )
         return types.function
 
     // Since isObject also returns true for arrays, check that before as well
-    if( __.isArray( value ) )
+    if( _.isArray( value ) )
         return types.array
 
     // isObject should be last for any possible object 'types'
-    if( __.isObject( value ) )
+    if( _.isObject( value ) )
         return types.object
 
     /* $lab:coverage:off$ */
@@ -771,7 +793,7 @@ mixins.typeof = ( value, scrutinize, returnTypes, flaggedVals ) => {
  *              // => Something else.
  */
 mixins.endWith = ( str, end ) => {
-    return __.endsWith( str, end )
+    return _.endsWith( str, end )
         ? str
         : str + end
 }
@@ -792,7 +814,7 @@ mixins.endWith = ( str, end ) => {
  *            // => (Using startsWith and endsWith together)
  */
 mixins.startWith = ( str, start ) => {
-    return __.startsWith( str, start )
+    return _.startsWith( str, start )
         ? str
         : start + str
 }
@@ -858,18 +880,18 @@ mixins.censor = ( word, masker, maskType ) => {
     const encWord  = new Buffer( word ).toString( 'base64' )
 
     // Lets hope this is a God fearing christian without a potty mouth
-    if( __.indexOf( censored, encWord ) === -1 )
+    if( _.indexOf( censored, encWord ) === -1 )
         return word
 
     // Return the masker to default if it's not a string
-    if( ! masker || ! __.isString( masker ) )
+    if( ! masker || ! _.isString( masker ) )
         masker = '*'
 
     // If just a single character was given for the masker, then we can use the maskType
     if( masker.length <= 1 )
         switch ( maskType ) {
             case 'full':
-                return __.repeat( masker, word.length )
+                return _.repeat( masker, word.length )
                 break
 
             case 'single':
@@ -887,7 +909,7 @@ mixins.censor = ( word, masker, maskType ) => {
 
             default: // Partial
                 const replaceNum = Math.floor(( 55 / 100 ) *  word.length)
-                const range = __.range(1, replaceNum+1)
+                const range = _.range(1, replaceNum+1)
                 return mixins.replaceAt( word, range, masker )
                 break
         }
@@ -897,11 +919,98 @@ mixins.censor = ( word, masker, maskType ) => {
         return masker
 }
 
+/**
+ * Return a randomly generated string - at a specific length
+ *
+ * @param   {number}    length  Length of the desored string (Default: 20)
+ * @return  {string}
+ * @todo    Add the ability to specify the 'possible' string characters
+ * @example _.randStr( 15 )
+ *              // => gyC8Q9MABoEjGK6
+ */
+mixins.randStr = ( length ) => {
+    let result = ''
+
+    length = length || 20
+
+    const possible = [
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        'abcdefghijklmnopqrstuvwxyz',
+        '0123456789',
+        '$./'
+        //'`~!@#$%^&*()-_=+[{]}\\|\'";:/?.>,<'
+    ].join('')
+
+    for( let i=0; i < parseInt( length ); i++ )
+        result += possible.charAt(Math.floor(Math.random() * possible.length))
+
+    return result
+}
+
+/**
+ * Generate a salted hash of a specified password string - Similar to PHPs
+ * password_hash function, which returns a string with the hash AND the salt,
+ * making it easier to store in a database, and easier to verify
+ *
+ * @param   {string}    password        Password to hash
+ * @return  {string}    109 character password hash (salt is first 20 characters)
+ * @example _.passwordHash('secret')
+ *              // => LIE9OKy0g$eNB <cut> XFMcfx78L5SuZZivA==
+ */
+mixins.passwordHash = ( password ) => {
+    if( ! password )
+        return false
+
+    // Generate the salt
+    // THIS MUST NOT CHANGE! If this value is not the same as what
+    // passwordVerify expects, no hash will be validated
+    const salt = mixins.randStr( 20 )
+
+    // Return the salted hash with the salt prepended to it
+    return salt + mixins.hash( password, salt )
+}
+
+/**
+ * Verify a password against a password hash generated by _.passwordHash
+ *
+ * @param   {string}    password    Password to verify
+ * @param   {string}    passwdHash  String generated by _.passwordHash
+ * @return  {boolean}   TRUE if the result of a hash generated with the
+ *                      same password and the salt found in passwordHash,
+ *                      matches the hash inside passwordHash
+ * @example const hash = _.passwordHash('secret')
+ *          _.passwordVerify('secret', hash)
+ *              // => true
+ */
+mixins.passwordVerify = ( password, passwdHash ) => {
+    // Get the salt from the password hash - first 20 chars
+    const salt = passwdHash.substr( 0, 20 )
+    // Get the password hash, everything after the first 20 chars
+    const hash = passwdHash.substr( 20 )
+
+    // Check the hash against a hash generated with the same data
+    return mixins.hash( password, salt ) === hash
+}
+
+/**
+ * UNDER CONSTRUCTION
+ * Alternate through elements in an array (in order), returning the next element
+ * every time _.alternator() is ran with the same array. Based off of CodeIgniters
+ * alternator function in the string helper
+ */
 mixins.alternator = () => {
     console.log('Params', [...arguments])
     return ++_internals.alternator
 }
 
+/**
+ * UNDER CONSTRUCTION
+ * Escape a string, making it safe to use in a MySQL query. Based off of PHPs
+ * mysql_real_escape_string
+ *
+ * @param   {string}    content     String to use in the MySQL query
+ * @return  {string}    Safe version of the content string parameter
+ */
 mixins.mysqlEscape = ( content ) => {
     const replacements = [
         [ "\\", "\\\\" ],
@@ -926,16 +1035,16 @@ mixins.mysqlEscape = ( content ) => {
     return mixins.replace( content, map )
 
     /*return content
-        .replace("\\", "\\\\")
-        .replace("\'", "\\\'")
-        .replace("\"", "\\\"")
-        .replace("\n", "\\\n")
-        .replace("\r", "\\\r")
-        .replace("\x00", "\\\x00")
-        .replace("\x1a", "\\\x1a")
-    */
+     .replace("\\", "\\\\")
+     .replace("\'", "\\\'")
+     .replace("\"", "\\\"")
+     .replace("\n", "\\\n")
+     .replace("\r", "\\\r")
+     .replace("\x00", "\\\x00")
+     .replace("\x1a", "\\\x1a")
+     */
 }
 
-_.mixin( mixins )
+__.mixin( mixins )
 
-module.exports = _
+module.exports = __
