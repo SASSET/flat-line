@@ -334,7 +334,7 @@ mixins.hash = ( str, salt ) => {
  * @example _.randStr( 15 )
  *              // => gyC8Q9MABoEjGK6
  */
-mixins.randStr = ( length ) => {
+mixins.randStr = length => {
     length = length || 20
 
     if( ! mixins.isNumeric( length ))
@@ -594,8 +594,22 @@ mixins.sortObj = ( obj, comparator ) => {
  * // => true
  *
  */
-mixins.isNumeric = ( num ) => {
+mixins.isNumeric = num => {
     return _.isNumber( num ) || parseFloat( num ) == num
+}
+
+/**
+ * Validate a string against an RFC822 compliant pattern
+ *
+ * @param   {string}    email   Email address to validate against pattern
+ * @return  {boolean}
+ */
+mixins.isEmail = email => {
+    if( ! _.isString( email ) )
+        return false
+
+    // Only RFC822 compliant pattern that would work with JS
+    return /^([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22))*\x40([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d))*$/.test( email )
 }
 
 /**
@@ -960,7 +974,7 @@ mixins.censor = ( word, masker, maskType ) => {
  * @example _.passwordHash('secret')
  *              // => LIE9OKy0g$eNB <cut> XFMcfx78L5SuZZivA==
  */
-mixins.passwordHash = ( password ) => {
+mixins.passwordHash = password => {
     if( ! password )
         throw new Error('No password was given to hash')
 
@@ -1027,7 +1041,7 @@ mixins.alternator = () => {
  * @param   {string}    content     String to use in the MySQL query
  * @return  {string}    Safe version of the content string parameter
  */
-mixins.mysqlEscape = ( content ) => {
+mixins.mysqlEscape = content => {
     const replacements = [
         [ "\\", "\\\\" ],
         [ "\'", "\\\'" ],

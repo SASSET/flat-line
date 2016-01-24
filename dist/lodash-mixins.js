@@ -574,6 +574,20 @@ mixins.isNumeric = function (num) {
 };
 
 /**
+ * Validate a string against an RFC822 compliant pattern
+ *
+ * @param   {string}    email   Email address to validate against pattern
+ * @return  {boolean}
+ */
+mixins.isEmail = function (email) {
+    if (!_.isString(email)) return false;
+
+    // Only RFC822 compliant pattern that would work with JS
+    return (/^([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22))*\x40([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d))*$/.test(email)
+    );
+};
+
+/**
  * Check if two values match each other. Basically sorts the object and
  * source, then passes it off to _.isMatch, (Since objects/arrays with
  * same values in different orders would be considered discrepancies
