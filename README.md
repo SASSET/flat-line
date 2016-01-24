@@ -73,6 +73,7 @@ _.isNumeric( '1.2' )
 ### _.isEmail( *string* email )
 
 Attempt to validate an e-mail address against the [RFC822](https://www.w3.org/Protocols/rfc822/) standard.
+
 **Note**: It's actually impossible to validate an e-mail address against the RFC822 format and be 100% positive in it's results. There are a very few cases that may slip through the pattern matching validation, but the pattern used here is about as close as I can get
 
 ```javascript
@@ -147,7 +148,9 @@ _.utf8Decode('TÃ©lÃ©com') === 'Télécom'
 ### _.censor( *string* data )
 
 Censor any common profanity words by replacing it with a specified word, or masking all or some of the characters with a single specified character. The words are kept in the separate data.js file, and base64 encrypted, as to not store a huge list of profanity on any users computer. The list of words is actually a list that was downloaded from a TeamSpeak related website of words to ban ([here](http://addons.teamspeak.com/directory/addon/miscellaneous-tools/TXT-English-badwords-bans-and-list.html))
+
  **Note**: This only supports the English language, the dirty version
+
  **Note**: The content for this method (censored words) are all base64 encoded, meaning you wont have a file with hundreds of naughty words in your dependencies (In case that was bothering you)
 
  ```javascript
