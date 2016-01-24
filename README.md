@@ -4,7 +4,7 @@ Just some extra functionality I find myself needing in some projects
 * **[_.uniqObjs](https://github.com/jhyland87/lodash-mixins#_uniqobjs-array-arrayofobjects-)** - Return only the unique plain objects from a collection of plain objects
 * **[_.sortObj](https://github.com/jhyland87/lodash-mixins#_sortobj-object-object-)** - Return a copy of the object with the content sorted by the keys
 * **[_.isNumeric](https://github.com/jhyland87/lodash-mixins#_isnumeric-mixed-something)** - Checks if a value is numeric, also able to determine if a string value is numeric (useful for GetOpts or URI Params)
-* **[_.isEmail](https://github.com/jhyland87/lodash-mixins#_isemail-string-data-)** - Check if an e-mail address is RFC822 compliant
+* **[_.isEmail](https://github.com/jhyland87/lodash-mixins#_isemail-string-email-)** - Check if an e-mail address is RFC822 compliant
 * **[_.sortMatch](https://github.com/jhyland87/lodash-mixins#_sortmatch-mixed-foo-mixed-bar-)** - Checks if the sorted version of two objects or arrays match
 * **[_.bool](https://github.com/jhyland87/lodash-mixins#_bool-mixed-boolstr--mixed-otherbools--)** - Checks if a string (or boolean) object is boolean (again, useful for GetOpts or URI Params)
 * **[_.typeof](https://github.com/jhyland87/lodash-mixins#_typeof-mixed-element--bool-discern-)** - Somewhat like the standard `typeof` operator, but can also parse strings as other possible values ('true' can be boolean, '1' can be number, etc)
