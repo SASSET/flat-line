@@ -38,6 +38,11 @@ describe('_.isEmail mixin', () => {
         done()
     })
 
+    it('should return false when given a string thats 256 characters long', done => {
+        expect( _.isEmail( _.randStr(64) + '@' + _.randStr(200) + '.com') ).to.equal( false )
+        done()
+    })
+
     it('should return true when given "john@gmail.com"', done => {
         expect( _.isEmail('john@gmail.com') ).to.equal( true )
         done()

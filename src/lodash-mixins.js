@@ -605,7 +605,12 @@ mixins.isNumeric = num => {
  * @return  {boolean}
  */
 mixins.isEmail = email => {
+    // Must be a string!
     if( ! _.isString( email ) )
+        return false
+
+    // Verify the length (using min/max standards)
+    if( email.length < 4 || email.length > 255 )
         return false
 
     // Only RFC822 compliant pattern that would work with JS
