@@ -18,7 +18,10 @@
  *          http://stackoverflow.com/questions/1534127/pluralize-in-php
  * - Sanatization? (SQL Injection, XSS prevention, etc)
  * - Alternator: https://codeigniter.com/user_guide/helpers/string_helper.html#alternator
+ * - Debugging/Checkpoint methods: Something to enable debugging, which would enable a bunch of debugging
+ *      related functions; Maybe a verbosity level as well?
  */
+
 const _ = require('lodash')
 
 // Get a fresh copy of lodash, since implementing mixins in the instance
