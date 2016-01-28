@@ -1031,6 +1031,33 @@ mixins.passwordVerify = ( password, passwdHash ) => {
 }
 
 /**
+ * Remove items from object, mutating the original object by removing specified element(s),
+ * and returning a new object of said element(s)
+ * This is basically the same as lodashes _.remove method, except this works for Objects,
+ * not arrays.
+ *
+ * @param   {object}        obj     Object (to mutate)
+ * @param   {array|string}  del     Element(s) to remove from obj
+ * @return  {object}        Object of items removed from obj param
+ * @note    This will mutate the original object, removing the `del` element(s)
+ * @todo    Need to add some sanity checking, some more logic, etc etc
+ */
+mixins.removeObj = ( obj, del ) => {
+    const picked = _.pick( obj, del )
+
+    if(_.isArray(del)){
+        _.forEach(del, d => {
+            _.unset(obj, d)
+        })
+    }
+    else {
+        _.unset(obj, del)
+    }
+
+    return picked
+}
+
+/**
  * UNDER CONSTRUCTION
  * Alternate through elements in an array (in order), returning the next element
  * every time _.alternator() is ran with the same array. Based off of CodeIgniters

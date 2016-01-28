@@ -17,6 +17,8 @@
  *          http://stackoverflow.com/questions/1534127/pluralize-in-php
  * - Sanatization? (SQL Injection, XSS prevention, etc)
  * - Alternator: https://codeigniter.com/user_guide/helpers/string_helper.html#alternator
+ * - Debugging/Checkpoint methods: Something to enable debugging, which would enable a bunch of debugging
+ *      related functions; Maybe a verbosity level as well?
  */
 
 var _arguments = arguments;
@@ -964,6 +966,32 @@ mixins.passwordVerify = function (password, passwdHash) {
 
     // Check the hash against a hash generated with the same data
     return mixins.hash(password, salt) === hash;
+};
+
+/**
+ * Remove items from object, mutating the original object by removing specified element(s),
+ * and returning a new object of said element(s)
+ * This is basically the same as lodashes _.remove method, except this works for Objects,
+ * not arrays.
+ *
+ * @param   {object}        obj     Object (to mutate)
+ * @param   {array|string}  del     Element(s) to remove from obj
+ * @return  {object}        Object of items removed from obj param
+ * @note    This will mutate the original object, removing the `del` element(s)
+ * @todo    Need to add some sanity checking, some more logic, etc etc
+ */
+mixins.removeObj = function (obj, del) {
+    var picked = _.pick(obj, del);
+
+    if (_.isArray(del)) {
+        _.forEach(del, function (d) {
+            _.unset(obj, d);
+        });
+    } else {
+        _.unset(obj, del);
+    }
+
+    return picked;
 };
 
 /**
