@@ -21,6 +21,7 @@ describe('_.isNumeric mixin', () => {
 
     // Test numeric values
     _( tests.is )
+        .chain()
         .forEach(n => {
             it(`Number ${n} to return true`, done => {
                 expect( _.isNumeric( n )).to.equal( true );
@@ -31,6 +32,7 @@ describe('_.isNumeric mixin', () => {
 
     // Test non-numeric values
     _( tests.isnt )
+        .chain()
         .forEach(n => {
             it(`Number ${n} to return false`, done => {
                 expect( _.isNumeric( n )).to.not.equal( true );

@@ -349,6 +349,132 @@ mixins.randStr = function (length) {
 };
 
 /**
+ * Return the type of a specific variable, much like the standard 'typeof', only
+ * with a little more functionality. This is primarily used for input from
+ * libraries/packages/modules that may convert the variable to a different type
+ * when interacting with it. For example, pretty much anything passed through the
+ * URI parameters will be a string, as well as anything passed through GetOpts,
+ * but you may want integers, for example, to actually be identified as numbers, or
+ * true/false/null/undefined strings to be identified as boolean/null/undefined.
+ * That's what the scrutinize parameter does here, it will process the variable
+ * to attempt to identify the type it originally was.
+ *
+ * NOTE: If no type is matched, then the toString() value will be returned
+ *
+ * @param   {*}         value           Value to process
+ * @param   {boolean}   scrutinize      Determine if the true value type should be
+ *                                      determined through logical processing
+ * @param   {object}    returnTypes     Object of return type strings to overwrite
+ * @param   {object}    flaggedVals     Values used to determine the real value types
+ *                                      of flagged values (Only used if scrutinize is
+ *                                      enabled)
+ * @return  {string}    The variable type (string, array, object, boolean, etc)
+ * @example _.typeof( [1,2] )       // array
+ *          _.typeof( 'foo' )       // string
+ *          _.typeof( true )        // boolean
+ *          _.typeof( 'true' )      // string
+ *          _.typeof( 'true',true ) // boolean
+ *          _.typeof( null )        // null
+ *          _.typeof( 'null' )      // string
+ *          _.typeof( 'null',true ) // null
+ */
+mixins.typeof = function (value, scrutinize, returnTypes, flaggedVals) {
+    // String representations of the value types (Overridden by
+    // returnTypes if defined)
+    var types = _.extend({
+        undefined: 'undefined',
+        null: 'null',
+        string: 'string',
+        boolean: 'boolean',
+        array: 'array',
+        element: 'element',
+        date: 'date',
+        regexp: 'regexp',
+        object: 'object',
+        number: 'number',
+        function: 'function',
+        unknown: 'unknown'
+    }, returnTypes || {});
+
+    // Flagged values for string variables; EG: if string is 'true',
+    // then the it's Boolean (Overridden by flaggedVals if defined)
+    var flagged = _.extend({
+        boolean: ['true', 'false'],
+        null: ['null', 'NULL'],
+        undefined: ['undefined']
+    }, flaggedVals || {});
+
+    // Retrieve the actual object type from the prototype
+    //const objType = Object.prototype.toString.call( value )
+
+    // Attempt to regex match the type (value should be [object TYPE]
+    //const objTypeRegex = objType.match( /^\[object\s(.*)\]$/ )
+
+    /* $lab:coverage:off$ */
+    // Match the type, or use the types.undefined (This shouldn't ever not
+    // match)
+    //const objTypeString = objTypeRegex[1] ? objTypeRegex[1].toLowerCase() : types.unknown
+    /* $lab:coverage:on$ */
+
+    if (_.isUndefined(value)) return types.undefined;
+
+    if (_.isNull(value)) return types.null;
+
+    // String values are what get opened to scrutiny, if enabled
+    if (_.isString(value)) {
+        // If scrutinize isnt enabled, then just return string
+        if (!!scrutinize === false) return types.string;
+
+        // Numbers should be the same value if leniently compared against it's float-parsed self
+        if (parseFloat(value) == value) return types.number;
+
+        // Check if this string is inside the boolean flags
+        if (_.indexOf(flagged.boolean, value) !== -1) return types.boolean;
+
+        // Check if its inside any null flags
+        if (_.indexOf(flagged.null, value) !== -1) return types.null;
+
+        // Check if its inside any undefined flags
+        if (_.indexOf(flagged.undefined, value) !== -1) return types.undefined;
+
+        // If no parser caught it, then it must be a string
+        return types.string;
+    }
+
+    // Certain check types can't be misconstrued as other types, unlike other
+    // types (such as objects), get those out of the way
+    if (_.isBoolean(value)) return types.boolean;
+
+    if (_.isNumber(value)) return types.number;
+
+    if (_.isDate(value)) return types.date;
+
+    if (_.isRegExp(value)) return types.regexp;
+
+    /* $lab:coverage:off$ */
+    // Disabling coverage for this, since unit testing is done via node
+    if (_.isElement(value)) return types.element;
+    /* $lab:coverage:on$ */
+
+    // Since isObject returns true for functions, check this before that
+    if (_.isFunction(value)) return types.function;
+
+    // Since isObject also returns true for arrays, check that before as well
+    if (_.isArray(value)) return types.array;
+
+    // isObject should be last for any possible object 'types'
+    if (_.isObject(value)) return types.object;
+
+    /* $lab:coverage:off$ */
+    // If nothing else was caught, then return the type found via the
+    // prototypes toString() call
+    // Note: Disabling coverage, since I can't find a value to reach this, and
+    // it's just in case I missed something. It helps me sleep at night
+    return mixins.type(value).toLowerCase();
+    /* $lab:coverage:on$ */
+};
+
+/**
  * Substitute specific characters within a string with a specified replacement.
  * Replacement positions are specified by either a single (numeric) value, or an
  * array of numeric values
@@ -511,50 +637,6 @@ mixins.uniqObjs = function (arr) {
 };
 
 /**
- * Return a copy of the object with the content sorted by the keys
- *
- * @param   {object}    obj         Object to sort by keys
- * @param   {function}  comparator  Function to compare/sort the elements
- * @return  {object}
- * @example
- *
- * const obj = {b: 3, c: 2, a: 1}
- *
- * console.log( _.sortObj( obj ) )
- * console.log( _( obj ).sortObj().value() )
- *
- * // => {a: 1, b: 3, c: 2}
- *
- * _.sortObj(obj, (value, key) => {
-     *      return value
-     * })
- *
- * // => {a: 1, c: 2, b: 3}
- *
- */
-mixins.sortObj = function (obj, comparator) {
-    // Make sure we were given an object...
-    if (!_.isObject(obj)) throw new Error('_.sortObj expects an object obj is: ' + mixins.type(obj));
-
-    // If comparator is provided, then it needs to be a function, if it isn't
-    // a function, then throw an error
-    if (!_.isUndefined(comparator) && !_.isFunction(comparator)) throw new Error('_.sortObj expects the comparator to be a function (if defined), but received a: ' + mixins.type(comparator));
-
-    // Create an array of the object keys, sorted either alpha/numeric
-    // by default, or using the comparator if defined
-    var keys = _.sortBy(_.keys(obj), function (key) {
-        return _.isFunction(comparator) ? comparator(obj[key], key) : key;
-    });
-
-    // Return a newly created object which uses the keys in the array
-    // created above, and grabs the associated data from the object
-    // provided
-    return _.object(keys, _.map(keys, function (key) {
-        return obj[key];
-    }));
-};
-
-/**
  * Check if the provided number is a float or integer value. This just tacks
  * a 2nd check onto lodashes isNumber, which uses a lenient comparative operator
  * to check if the value of parseFloat is the same as the provided number
@@ -655,132 +737,6 @@ mixins.bool = function (value, trues, lower) {
     trues = _.union([1, '1', true, 'true'], trues);
 
     return _.indexOf(trues, !!lower === true ? value.toLowerCase() : value) !== -1;
-};
-
-/**
- * Return the type of a specific variable, much like the standard 'typeof', only
- * with a little more functionality. This is primarily used for input from
- * libraries/packages/modules that may convert the variable to a different type
- * when interacting with it. For example, pretty much anything passed through the
- * URI parameters will be a string, as well as anything passed through GetOpts,
- * but you may want integers, for example, to actually be identified as numbers, or
- * true/false/null/undefined strings to be identified as boolean/null/undefined.
- * That's what the scrutinize parameter does here, it will process the variable
- * to attempt to identify the type it originally was.
- *
- * NOTE: If no type is matched, then the toString() value will be returned
- *
- * @param   {*}         value           Value to process
- * @param   {boolean}   scrutinize      Determine if the true value type should be
- *                                      determined through logical processing
- * @param   {object}    returnTypes     Object of return type strings to overwrite
- * @param   {object}    flaggedVals     Values used to determine the real value types
- *                                      of flagged values (Only used if scrutinize is
- *                                      enabled)
- * @return  {string}    The variable type (string, array, object, boolean, etc)
- * @example _.typeof( [1,2] )       // array
- *          _.typeof( 'foo' )       // string
- *          _.typeof( true )        // boolean
- *          _.typeof( 'true' )      // string
- *          _.typeof( 'true',true ) // boolean
- *          _.typeof( null )        // null
- *          _.typeof( 'null' )      // string
- *          _.typeof( 'null',true ) // null
- */
-mixins.typeof = function (value, scrutinize, returnTypes, flaggedVals) {
-    // String representations of the value types (Overridden by
-    // returnTypes if defined)
-    var types = _.extend({
-        undefined: 'undefined',
-        null: 'null',
-        string: 'string',
-        boolean: 'boolean',
-        array: 'array',
-        element: 'element',
-        date: 'date',
-        regexp: 'regexp',
-        object: 'object',
-        number: 'number',
-        function: 'function',
-        unknown: 'unknown'
-    }, returnTypes || {});
-
-    // Flagged values for string variables; EG: if string is 'true',
-    // then the it's Boolean (Overridden by flaggedVals if defined)
-    var flagged = _.extend({
-        boolean: ['true', 'false'],
-        null: ['null', 'NULL'],
-        undefined: ['undefined']
-    }, flaggedVals || {});
-
-    // Retrieve the actual object type from the prototype
-    //const objType = Object.prototype.toString.call( value )
-
-    // Attempt to regex match the type (value should be [object TYPE]
-    //const objTypeRegex = objType.match( /^\[object\s(.*)\]$/ )
-
-    /* $lab:coverage:off$ */
-    // Match the type, or use the types.undefined (This shouldn't ever not
-    // match)
-    //const objTypeString = objTypeRegex[1] ? objTypeRegex[1].toLowerCase() : types.unknown
-    /* $lab:coverage:on$ */
-
-    if (_.isUndefined(value)) return types.undefined;
-
-    if (_.isNull(value)) return types.null;
-
-    // String values are what get opened to scrutiny, if enabled
-    if (_.isString(value)) {
-        // If scrutinize isnt enabled, then just return string
-        if (!!scrutinize === false) return types.string;
-
-        // Numbers should be the same value if leniently compared against it's float-parsed self
-        if (parseFloat(value) == value) return types.number;
-
-        // Check if this string is inside the boolean flags
-        if (_.indexOf(flagged.boolean, value) !== -1) return types.boolean;
-
-        // Check if its inside any null flags
-        if (_.indexOf(flagged.null, value) !== -1) return types.null;
-
-        // Check if its inside any undefined flags
-        if (_.indexOf(flagged.undefined, value) !== -1) return types.undefined;
-
-        // If no parser caught it, then it must be a string
-        return types.string;
-    }
-
-    // Certain check types can't be misconstrued as other types, unlike other
-    // types (such as objects), get those out of the way
-    if (_.isBoolean(value)) return types.boolean;
-
-    if (_.isNumber(value)) return types.number;
-
-    if (_.isDate(value)) return types.date;
-
-    if (_.isRegExp(value)) return types.regexp;
-
-    /* $lab:coverage:off$ */
-    // Disabling coverage for this, since unit testing is done via node
-    if (_.isElement(value)) return types.element;
-    /* $lab:coverage:on$ */
-
-    // Since isObject returns true for functions, check this before that
-    if (_.isFunction(value)) return types.function;
-
-    // Since isObject also returns true for arrays, check that before as well
-    if (_.isArray(value)) return types.array;
-
-    // isObject should be last for any possible object 'types'
-    if (_.isObject(value)) return types.object;
-
-    /* $lab:coverage:off$ */
-    // If nothing else was caught, then return the type found via the
-    // prototypes toString() call
-    // Note: Disabling coverage, since I can't find a value to reach this, and
-    // it's just in case I missed something. It helps me sleep at night
-    return mixins.type(value).toLowerCase();
-    /* $lab:coverage:on$ */
 };
 
 /**
@@ -966,6 +922,85 @@ mixins.passwordVerify = function (password, passwdHash) {
 
     // Check the hash against a hash generated with the same data
     return mixins.hash(password, salt) === hash;
+};
+
+/**
+ * Return a copy of the object with the content sorted by the keys
+ *
+ * @param   {object}    obj         Object to sort by keys
+ * @param   {function}  comparator  Function to compare/sort the elements
+ * @return  {object}
+ * @example
+ *
+ * const obj = {b: 3, c: 2, a: 1}
+ *
+ * console.log( _.sortObj( obj ) )
+ * console.log( _( obj ).sortObj().value() )
+ *
+ * // => {a: 1, b: 3, c: 2}
+ *
+ * _.sortObj(obj, (value, key) => {
+     *      return value
+     * })
+ *
+ * // => {a: 1, c: 2, b: 3}
+ *
+ */
+mixins.sortObj = function (obj, comparator) {
+    // Make sure we were given an object...
+    if (!_.isObject(obj)) throw new Error('_.sortObj expects an object obj is: ' + mixins.type(obj));
+
+    // If comparator is provided, then it needs to be a function, if it isn't
+    // a function, then throw an error
+    if (!_.isUndefined(comparator) && !_.isFunction(comparator)) throw new Error('_.sortObj expects the comparator to be a function (if defined), but received a: ' + mixins.type(comparator));
+
+    // Create an array of the object keys, sorted either alpha/numeric
+    // by default, or using the comparator if defined
+    var keys = _.sortBy(_.keys(obj), function (key) {
+        return _.isFunction(comparator) ? comparator(obj[key], key) : key;
+    });
+
+    // Return a newly created object which uses the keys in the array
+    // created above, and grabs the associated data from the object
+    // provided
+    return _.zipObject(keys, _.map(keys, function (key) {
+        return obj[key];
+    }));
+};
+
+/**
+ * Validate that an array, or objects in an array, or elements within the
+ * objects in an array are all unique
+ *
+ * @param   {array}     collection  Single level array or array of objects
+ * @param   {string}    element     If `collection` is an array of objects, and
+ *                                  we are to check that a specific element in
+ *                                  those objects is unique, then this should be
+ *                                  the name of the element in the object
+ * @return  {boolean}
+ * @example _.isUniq( [ 1, 2, 3, 2 ] ) === false
+ *          _.isUniq( [ {a: 1}, {a: 2}, {a: 1} ] ) === false
+ *          _.isUniq( [ {a: 1, b: 2}, {a: 2, b: 5}, {a: 1, b: 2} ], 'b') === false
+ */
+mixins.isUniq = function (collection, element) {
+    if (!_.isArray(collection)) throw new Error('Collection needs to be an array, you provided a ' + mixins.typeof(collection));
+
+    if (collection.length === 0) return true;
+
+    // If this is an array of objects, then handle it differently than if its just an array
+    if (_.isObject(collection[0])) {
+        // If no specific element is provided, then uniq the entire object
+        if (_.isUndefined(element)) {
+            return mixins.uniqObjs(collection).length === collection.length;
+        }
+        // If an element was provided, then check that just that element is unique
+        else {
+                return _.uniqBy(collection, element).length === collection.length;
+            }
+    }
+
+    // Here, we can just unique the array and verify the length
+    return _.uniq(collection).length === collection.length;
 };
 
 /**
