@@ -328,7 +328,7 @@ Verify that a collection (string, array or object) has all listed values, basica
 _.includesAll( [1,2,3], [1,3] ) === true
 _.includesAll( [1,2,3], [1,2], 2 ) === false
 _.includesAll( {user: 'fred', age: 40 }, ['fred', 40] ) === true
-_.includesAll( 'abcdef', ['a','d] ) === true
+_.includesAll( 'abcdef', ['a','d'] ) === true
 ```
 
 ### _.isSnake( *string* str )
