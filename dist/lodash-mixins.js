@@ -15,10 +15,11 @@
  * - Plural detection (isPlural)
  *      EG: https://codeigniter.com/user_guide/helpers/inflector_helper.html
  *          http://stackoverflow.com/questions/1534127/pluralize-in-php
- * - Sanatization? (SQL Injection, XSS prevention, etc)
+ * - Sanitization? (SQL Injection, XSS prevention, etc)
  * - Alternator: https://codeigniter.com/user_guide/helpers/string_helper.html#alternator
- * - Debugging/Checkpoint methods: Something to enable debugging, which would enable a bunch of debugging
- *      related functions; Maybe a verbosity level as well?
+ * - Debugging/Checkpoint methods: Something to enable debugging, which would enable a bunch of debugging related functions; Maybe a verbosity level as well?
+ * - Get Duplicates: Could be used with _.isUniq, basically just return an array of the element keys that are duplicates, maybe optionally also the number of times found? (Somewhat like uniq -c)
+ * - excludesAll: Basically the complete opposite of includesAll
  */
 
 var _arguments = arguments;
@@ -33,7 +34,7 @@ var __ = _.runInContext();
 var crypto = require('crypto');
 
 var _internals = {
-    alternator: 0,
+    alternator: 0, // Not used.. YET
     censored: require('./data').censored,
     htmlEntities: {
         '&': '&amp;',
@@ -44,6 +45,9 @@ var _internals = {
     }
 };
 
+// Returned mixins object.
+// NOTE: Mixins are added to this object in a specific order. Some mixins use other mixins,
+// and since they're anonymous functions, they need to be defined before usage
 var mixins = {};
 
 /**
@@ -535,37 +539,45 @@ mixins.type = function (item) {
  * @param   {string}        modifiers       Regex modifiers to use for search
  *                                          (EG: i for case-insensitivity) 'g'
  *                                          (global) is included by default
- * @example _.replace( 'test', { t: 'T'} )
+ * @example _.multiReplace( 'test', { t: 'T'} )
  *              // => TesT
- *          _.replace( 'foo', { FOO: 'bar'}, 'i' )
+ *          _.multiReplace( 'foo', { FOO: 'bar'}, 'i' )
  *              // => bar
- *          _.replace( 'Windows XP', [{ windows: 'Linux'}, {xp: 'RHEL'}], 'i' )
+ *          _.multiReplace( 'Windows XP', [{ windows: 'Linux'}, {xp: 'RHEL'}], 'i' )
  *              // => Linux RHEL
  */
-mixins.replace = function (str, replacements, modifiers) {
+mixins.multiReplace = function (str, replacements, modifiers) {
     if (!str || !_.isString(str)) return str;
 
     if (!replacements) return str;
 
+    // Replacements need to be an object, or an array with two values (which is verified later)
     if (!_.isPlainObject(replacements) && !_.isArray(replacements)) throw new Error('Replacements need to be an array or plain object, you gave us a ' + mixins.type(str));
 
-    // If the replacements is an array, convert it to an object (validate the structure in the process)
+    // Since we later expect for the replacements to be an object, check if its
+    // an array, if so, reconstruct it into an object
     if (_.isArray(replacements)) {
         (function () {
             var replacementsObj = {};
 
+            // Loop through each replacement, checking the values, making sure both a search/replace is present
             _.forEach(replacements, function (r) {
+                // If its an array, then it needs atleast two values in it
                 if (_.isArray(r)) {
                     if (_.isUndefined(r[0]) || _.isUndefined(r[1])) {
                         throw new Error('Replacement structure illegal - Array of unfulfilled array');
                     } else {
                         replacementsObj[r[0]] = r[1];
                     }
-                } else if (_.isPlainObject(r)) {
-                    replacementsObj[Object.keys(r)[0]] = r[Object.keys(r)[0]];
-                } else {
-                    throw new Error('Replacement structure illegal - Array of non-array and non-object');
                 }
+                // If its an object, use hte key/val
+                else if (_.isPlainObject(r)) {
+                        replacementsObj[Object.keys(r)[0]] = r[Object.keys(r)[0]];
+                    }
+                    // Shouldnt ever really get here, but I guess im just paranoid
+                    else {
+                            throw new Error('Replacement structure illegal - Array of non-array and non-object');
+                        }
             });
 
             replacements = replacementsObj;
@@ -1072,6 +1084,150 @@ mixins.mysqlEscape = function (content) {
      .replace("\x00", "\\\x00")
      .replace("\x1a", "\\\x1a")
      */
+};
+
+/**
+ * Check if a specified string is in snake_case format
+ *
+ * @param   {string}    str     String to inspect
+ * @return  {boolean}
+ */
+mixins.isSnake = function (str) {
+    return str === _.snakeCase(str);
+};
+
+/**
+ * Check if a specified string is in camelCase format
+ *
+ * @param   {string}    str     String to inspect
+ * @return  {boolean}
+ */
+mixins.isCamel = function (str) {
+    return str === _.camelCase(str);
+};
+
+/**
+ * Check if a specified string is in kebab-case format
+ *
+ * @param   {string}    str     String to inspect
+ * @return  {boolean}
+ */
+mixins.isKebab = function (str) {
+    return str === _.kebabCase(str);
+};
+
+/**
+ * Check if a specified string is in Start Case format
+ *
+ * @param   {string}    str     String to inspect
+ * @return  {boolean}
+ */
+mixins.isStart = function (str) {
+    return str === _.startCase(str);
+};
+
+/**
+ * Check if a specified string is in lower case format
+ *
+ * @param   {string}    str     String to inspect
+ * @return  {boolean}
+ */
+mixins.isLower = function (str) {
+    return str === _.lowerCase(str);
+};
+
+/**
+ * Check if a specified string is in UPPER CASE format
+ *
+ * @param   {string}    str     String to inspect
+ * @return  {boolean}
+ */
+mixins.isUpper = function (str) {
+    return str === _.upperCase(str);
+};
+
+/**
+ * Retrieve the case type of a specified string
+ *
+ * @param   {string}            str     String to inspect
+ * @return  {string|undefined}  Will return one of: snake,
+ *                              camel, kebab, start, lower,
+ *                              upper or undefined if none
+ */
+mixins.getCase = function (str) {
+    if (mixins.isSnake(str)) return 'snake';else if (mixins.isCamel(str)) return 'camel';else if (mixins.isKebab(str)) return 'kebab';else if (mixins.isStart(str)) return 'start';else if (mixins.isLower(str)) return 'lower';else if (mixins.isUpper(str)) return 'upper';else return undefined;
+};
+
+/**
+ * Verify a string is in a specified format.
+ *
+ * @param   {string}    theCase The case to validate
+ * @param   {string}    str     String to inspect
+ * @return  {boolean}
+ */
+mixins.isCase = function (theCase, str) {
+    switch (theCase) {
+        case 'snake':
+            return _.snakeCase(str) === str;
+            break;
+
+        case 'camel':
+            return _.camelCase(str) === str;
+            break;
+
+        case 'kebab':
+            return _.kebabCase(str) === str;
+            break;
+
+        case 'start':
+            return _.startCase(str) === str;
+            break;
+
+        case 'lower':
+            return _.lowerCase(str) === str;
+            break;
+
+        case 'upper':
+            return _.upperCase(str) === str;
+            break;
+
+        default:
+            return false;
+            break;
+    }
+};
+
+/**
+ * Verify that a collection (string, array or object) has all listed values, basically
+ * just an array-friendly version of _.includes
+ *
+ * @param   {array|object|string}   collection  The collection to search
+ * @param   {mixed}                 values      The value or values to search for
+ * @param   {number}                fromIndex   The index to search from.
+ * @return  {boolean}   Returns `true` based on the result of _.includes
+ * @example _.includesAll( [1,2,3], [1,3]) === true
+ *          _.includesAll( [1,2,3], [1,2], 2) === false
+ *          _.includesAll( {user: 'fred', age: 40 }, ['fred', 40]) === true
+ *          _.includesAll( 'abcdef', ['a','d] ) === true
+ */
+mixins.includesAll = function (collection, values, fromIndex) {
+    // Make sure we were given an array as the collection
+    if (!_.isArray(collection) && !_.isObject(collection) && !_.isString(collection)) throw new Error('_.includesAll: Expecting an array, string or object as the collection');
+
+    if (_.isUndefined(values) || _.isNull(values)) throw new Error('_.includesAll: Need a value to check for');
+
+    // Default this to 0
+    fromIndex = _.isNumber(fromIndex) ? parseInt(fromIndex) : 0;
+
+    // If were given an array, then iterate through the collection
+    if (_.isArray(values)) return _.every(values, function (v) {
+        return _.includes(collection, v, fromIndex);
+    });
+
+    // If we are NOT given an array for the values, then just hand everything down to the
+    // _.includes, according to the documentation, it can accept "anything" as the value
+    // (But it doesn't work as expected when given an array), hence this function
+    return _.includes(collection, values, fromIndex);
 };
 
 __.mixin(mixins);

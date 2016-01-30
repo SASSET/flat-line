@@ -12,23 +12,29 @@ const describe = lab.experiment
 const after = lab.after
 const expect = Code.expect
 
-// @todo Need better coverage
 describe('_.removeObj mixin', () => {
+    let statics = 'foo'
 
-    let statics = [ 'name', 'description','type' ]
-
-    const testObj = {name: 'test name', foo: 'foo something', required: true, unique: false, description: 'idk', type: 'string'}
-
-    console.log('Before',testObj)
+    const testObj = {
+        foo: 'a',
+        bar: 'b',
+        baz: 'c'
+    }
 
     statics = _.removeObj(testObj, statics)
 
+    it('should have added the "foo" element to the statics object (converted from a string)', done => {
+        expect( ! _.isUndefined( statics.foo ) ).to.equal( true )
+        done()
+    })
 
-    console.log('After (dynamic)',testObj)
-    console.log('After (static)',statics)
+    it('should have kept the elements "bar" and "baz" in the original object', done => {
+        expect( ! _.isUndefined( testObj.bar ) && ! _.isUndefined( testObj.baz ) ).to.equal( true )
+        done()
+    })
 
-    it('', done => {
-        expect( _.bool( 'BAZ', 'baz', true ) ).to.equal( true )
+    it('should not have moved the elements "bar" or "baz" to the statics object', done => {
+        expect( _.isUndefined( statics.bar ) && _.isUndefined( statics.baz ) ).to.equal( true )
         done()
     })
 })
