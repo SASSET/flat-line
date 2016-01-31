@@ -1,26 +1,9 @@
 'use strict'
 
 /**
- *
  * Some of the mixins were originally from phpjs.org methods, and were modified to use some of the lodash methods,
  * and to work as a mixin with the other methods. Also, they may have been optimized a bit, as they may have originally
  * been created some time ago. The methods that were originally from phpjs.org are: utf8Encode, utf8Decode and sha1
- */
-
-
-/**
- * Mixins to add
- * - Inflection (Plural/Singluar): Convert string to plural or singular, based on a count
- *      http://www.kavoir.com/2011/04/php-class-converting-plural-to-singular-or-vice-versa-in-english.html
- *      https://laravel.com/docs/5.2/helpers#method-str-plural
- * - Plural detection (isPlural)
- *      EG: https://codeigniter.com/user_guide/helpers/inflector_helper.html
- *          http://stackoverflow.com/questions/1534127/pluralize-in-php
- * - Sanitization? (SQL Injection, XSS prevention, etc)
- * - Alternator: https://codeigniter.com/user_guide/helpers/string_helper.html#alternator
- * - Debugging/Checkpoint methods: Something to enable debugging, which would enable a bunch of debugging related functions; Maybe a verbosity level as well?
- * - Get Duplicates: Could be used with _.isUniq, basically just return an array of the element keys that are duplicates, maybe optionally also the number of times found? (Somewhat like uniq -c)
- * - excludesAll: Basically the complete opposite of includesAll
  */
 
 const _ = require('lodash')

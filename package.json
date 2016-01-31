@@ -1,5 +1,5 @@
 {
-  "name": "lodash-mixins",
+  "name": "moar-lodash",
   "version": "1.0.0",
   "description": "Adding some other useful features to Lodash via the Mixins method",
   "main": "index.js",
@@ -10,11 +10,14 @@
     "lodash",
     "underscore"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jhyland87/lodash-mixins.git"
+  },
   "author": "Justin Hyland",
   "license": "ISC",
   "devDependencies": {
     "code": "^2.1.0",
-    "phpjs": "^1.3.2",
     "lodash": "^4.0.0"
   },
   "dependencies": {
