@@ -42,14 +42,4 @@ describe('_.utf8Decode mixin', () => {
         expect( _.utf8Decode('TÃ©lÃ©com') === 'Télécom' ).to.equal( true )
         done()
     })
-
-    it('to throw an error when given an object', done => {
-        expect(() => _.utf8Decode( {} )).to.throw( Error )
-        done()
-    })
-
-    it('to throw an error when given an array', done => {
-        expect(() => _.utf8Decode( [] )).to.throw( Error )
-        done()
-    })
 })

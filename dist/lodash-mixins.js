@@ -1,28 +1,10 @@
 'use strict';
 
 /**
- *
  * Some of the mixins were originally from phpjs.org methods, and were modified to use some of the lodash methods,
  * and to work as a mixin with the other methods. Also, they may have been optimized a bit, as they may have originally
  * been created some time ago. The methods that were originally from phpjs.org are: utf8Encode, utf8Decode and sha1
  */
-
-/**
- * Mixins to add
- * - Inflection (Plural/Singluar): Convert string to plural or singular, based on a count
- *      http://www.kavoir.com/2011/04/php-class-converting-plural-to-singular-or-vice-versa-in-english.html
- *      https://laravel.com/docs/5.2/helpers#method-str-plural
- * - Plural detection (isPlural)
- *      EG: https://codeigniter.com/user_guide/helpers/inflector_helper.html
- *          http://stackoverflow.com/questions/1534127/pluralize-in-php
- * - Sanitization? (SQL Injection, XSS prevention, etc)
- * - Alternator: https://codeigniter.com/user_guide/helpers/string_helper.html#alternator
- * - Debugging/Checkpoint methods: Something to enable debugging, which would enable a bunch of debugging related functions; Maybe a verbosity level as well?
- * - Get Duplicates: Could be used with _.isUniq, basically just return an array of the element keys that are duplicates, maybe optionally also the number of times found? (Somewhat like uniq -c)
- * - excludesAll: Basically the complete opposite of includesAll
- */
-
-var _arguments = arguments;
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
 
@@ -34,7 +16,10 @@ var __ = _.runInContext();
 var crypto = require('crypto');
 
 var _internals = {
-    alternator: 0, // Not used.. YET
+    alternator: {
+        i: 0,
+        params: null
+    },
     censored: require('./data').censored,
     htmlEntities: {
         '&': '&amp;',
@@ -45,21 +30,295 @@ var _internals = {
     }
 };
 
-// Returned mixins object.
-// NOTE: Mixins are added to this object in a specific order. Some mixins use other mixins,
-// and since they're anonymous functions, they need to be defined before usage
-var mixins = {};
+/**
+ * Alternate through the parameters provided, returning the next one in line every time.
+ *
+ * Instructions:
+ *      - Calling alternator() with the SAME parameters will return the next param each time
+ *      - Calling alternator() with NEW parameters will re-initialize the rotation, and return
+ *          the first new parameter listed
+ *      - Calling alternator() with NO parameters will reset the rotation to null, and return nothing
+ *
+ * @var      {array}     parameters  Parameters to rotate through
+ * @returns  {Mixed}     Whatever array element is next in line, or nothing when resetting
+ * @todo    Create unit tests
+ * @example
+ * for(i = 0; i< 6; i++)
+ *      _.alternator('a','b','c')
+ *      // returns (incrementally) : a, b, c, a, b, c
+ */
+function alternator() {
+    // If no params are set, just reset everything, return nothing
+    if (!arguments) {
+        //console.log('# A')
+        _internals.alternator.i = 0;
+        _internals.alternator.params = null;
+    }
+
+    // If this is the first time passing params, OR the params md5sum has changed
+    // (meaning new params), then reset the alternator with the new params
+    else if (_internals.alternator.params === null || md5(JSON.stringify(arguments)) !== _internals.alternator.params) {
+            //console.log('# B')
+            _internals.alternator.i = 0;
+            _internals.alternator.params = md5(JSON.stringify(arguments));
+
+            return arguments[_internals.alternator.i++];
+        }
+
+        // Just calling alternator again with the same params as last time..
+        else {
+                //console.log('# C - ', _internals.alternator.params)
+                if (_internals.alternator.i === arguments.length) _internals.alternator.i = 0;
+
+                return arguments[_internals.alternator.i++];
+            }
+}
+
+/**
+ * Retrieve the md5sum value for a specific string.
+ *
+ * This source was taken from the PHP.js project, I take no credit for this code
+ *
+ * @author Not me (Justin Hyland)
+ * @see http://phpjs.org/functions/md5/
+ * @param   {string}    str     String to hash
+ * @returns {string}    32 character MD5 sum
+ * @todo    Create unit tests
+ * @example md5('Hello World') === 'b10a8db164e0754105b7a99be72e3fe5'
+ */
+function md5(str) {
+    //  discuss at: http://phpjs.org/functions/md5/
+    // original by: Webtoolkit.info (http://www.webtoolkit.info/)
+    // improved by: Michael White (http://getsprink.com)
+    // improved by: Jack
+    // improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+    //    input by: Brett Zamir (http://brett-zamir.me)
+    // bugfixed by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+    //  depends on: utf8_encode
+    //   example 1: md5('Kevin van Zonneveld');
+    //   returns 1: '6e658d4bfcb59cc13f96c14450ac40b9'
+
+    var xl;
+
+    var rotateLeft = function rotateLeft(lValue, iShiftBits) {
+        return lValue << iShiftBits | lValue >>> 32 - iShiftBits;
+    };
+
+    var addUnsigned = function addUnsigned(lX, lY) {
+        var lX4, lY4, lX8, lY8, lResult;
+        lX8 = lX & 0x80000000;
+        lY8 = lY & 0x80000000;
+        lX4 = lX & 0x40000000;
+        lY4 = lY & 0x40000000;
+        lResult = (lX & 0x3FFFFFFF) + (lY & 0x3FFFFFFF);
+        if (lX4 & lY4) {
+            return lResult ^ 0x80000000 ^ lX8 ^ lY8;
+        }
+        if (lX4 | lY4) {
+            if (lResult & 0x40000000) {
+                return lResult ^ 0xC0000000 ^ lX8 ^ lY8;
+            } else {
+                return lResult ^ 0x40000000 ^ lX8 ^ lY8;
+            }
+        } else {
+            return lResult ^ lX8 ^ lY8;
+        }
+    };
+
+    var _F = function _F(x, y, z) {
+        return x & y | ~x & z;
+    };
+    var _G = function _G(x, y, z) {
+        return x & z | y & ~z;
+    };
+    var _H = function _H(x, y, z) {
+        return x ^ y ^ z;
+    };
+    var _I = function _I(x, y, z) {
+        return y ^ (x | ~z);
+    };
+
+    var _FF = function _FF(a, b, c, d, x, s, ac) {
+        a = addUnsigned(a, addUnsigned(addUnsigned(_F(b, c, d), x), ac));
+        return addUnsigned(rotateLeft(a, s), b);
+    };
+
+    var _GG = function _GG(a, b, c, d, x, s, ac) {
+        a = addUnsigned(a, addUnsigned(addUnsigned(_G(b, c, d), x), ac));
+        return addUnsigned(rotateLeft(a, s), b);
+    };
+
+    var _HH = function _HH(a, b, c, d, x, s, ac) {
+        a = addUnsigned(a, addUnsigned(addUnsigned(_H(b, c, d), x), ac));
+        return addUnsigned(rotateLeft(a, s), b);
+    };
+
+    var _II = function _II(a, b, c, d, x, s, ac) {
+        a = addUnsigned(a, addUnsigned(addUnsigned(_I(b, c, d), x), ac));
+        return addUnsigned(rotateLeft(a, s), b);
+    };
+
+    var convertToWordArray = function convertToWordArray(str) {
+        var lWordCount;
+        var lMessageLength = str.length;
+        var lNumberOfWords_temp1 = lMessageLength + 8;
+        var lNumberOfWords_temp2 = (lNumberOfWords_temp1 - lNumberOfWords_temp1 % 64) / 64;
+        var lNumberOfWords = (lNumberOfWords_temp2 + 1) * 16;
+        var lWordArray = new Array(lNumberOfWords - 1);
+        var lBytePosition = 0;
+        var lByteCount = 0;
+        while (lByteCount < lMessageLength) {
+            lWordCount = (lByteCount - lByteCount % 4) / 4;
+            lBytePosition = lByteCount % 4 * 8;
+            lWordArray[lWordCount] = lWordArray[lWordCount] | str.charCodeAt(lByteCount) << lBytePosition;
+            lByteCount++;
+        }
+        lWordCount = (lByteCount - lByteCount % 4) / 4;
+        lBytePosition = lByteCount % 4 * 8;
+        lWordArray[lWordCount] = lWordArray[lWordCount] | 0x80 << lBytePosition;
+        lWordArray[lNumberOfWords - 2] = lMessageLength << 3;
+        lWordArray[lNumberOfWords - 1] = lMessageLength >>> 29;
+        return lWordArray;
+    };
+
+    var wordToHex = function wordToHex(lValue) {
+        var wordToHexValue = '',
+            wordToHexValue_temp = '',
+            lByte,
+            lCount;
+        for (lCount = 0; lCount <= 3; lCount++) {
+            lByte = lValue >>> lCount * 8 & 255;
+            wordToHexValue_temp = '0' + lByte.toString(16);
+            wordToHexValue = wordToHexValue + wordToHexValue_temp.substr(wordToHexValue_temp.length - 2, 2);
+        }
+        return wordToHexValue;
+    };
+
+    var x = [],
+        k,
+        AA,
+        BB,
+        CC,
+        DD,
+        a,
+        b,
+        c,
+        d,
+        S11 = 7,
+        S12 = 12,
+        S13 = 17,
+        S14 = 22,
+        S21 = 5,
+        S22 = 9,
+        S23 = 14,
+        S24 = 20,
+        S31 = 4,
+        S32 = 11,
+        S33 = 16,
+        S34 = 23,
+        S41 = 6,
+        S42 = 10,
+        S43 = 15,
+        S44 = 21;
+
+    str = utf8Decode(str);
+    x = convertToWordArray(str);
+    a = 0x67452301;
+    b = 0xEFCDAB89;
+    c = 0x98BADCFE;
+    d = 0x10325476;
+
+    xl = x.length;
+    for (k = 0; k < xl; k += 16) {
+        AA = a;
+        BB = b;
+        CC = c;
+        DD = d;
+        a = _FF(a, b, c, d, x[k + 0], S11, 0xD76AA478);
+        d = _FF(d, a, b, c, x[k + 1], S12, 0xE8C7B756);
+        c = _FF(c, d, a, b, x[k + 2], S13, 0x242070DB);
+        b = _FF(b, c, d, a, x[k + 3], S14, 0xC1BDCEEE);
+        a = _FF(a, b, c, d, x[k + 4], S11, 0xF57C0FAF);
+        d = _FF(d, a, b, c, x[k + 5], S12, 0x4787C62A);
+        c = _FF(c, d, a, b, x[k + 6], S13, 0xA8304613);
+        b = _FF(b, c, d, a, x[k + 7], S14, 0xFD469501);
+        a = _FF(a, b, c, d, x[k + 8], S11, 0x698098D8);
+        d = _FF(d, a, b, c, x[k + 9], S12, 0x8B44F7AF);
+        c = _FF(c, d, a, b, x[k + 10], S13, 0xFFFF5BB1);
+        b = _FF(b, c, d, a, x[k + 11], S14, 0x895CD7BE);
+        a = _FF(a, b, c, d, x[k + 12], S11, 0x6B901122);
+        d = _FF(d, a, b, c, x[k + 13], S12, 0xFD987193);
+        c = _FF(c, d, a, b, x[k + 14], S13, 0xA679438E);
+        b = _FF(b, c, d, a, x[k + 15], S14, 0x49B40821);
+        a = _GG(a, b, c, d, x[k + 1], S21, 0xF61E2562);
+        d = _GG(d, a, b, c, x[k + 6], S22, 0xC040B340);
+        c = _GG(c, d, a, b, x[k + 11], S23, 0x265E5A51);
+        b = _GG(b, c, d, a, x[k + 0], S24, 0xE9B6C7AA);
+        a = _GG(a, b, c, d, x[k + 5], S21, 0xD62F105D);
+        d = _GG(d, a, b, c, x[k + 10], S22, 0x2441453);
+        c = _GG(c, d, a, b, x[k + 15], S23, 0xD8A1E681);
+        b = _GG(b, c, d, a, x[k + 4], S24, 0xE7D3FBC8);
+        a = _GG(a, b, c, d, x[k + 9], S21, 0x21E1CDE6);
+        d = _GG(d, a, b, c, x[k + 14], S22, 0xC33707D6);
+        c = _GG(c, d, a, b, x[k + 3], S23, 0xF4D50D87);
+        b = _GG(b, c, d, a, x[k + 8], S24, 0x455A14ED);
+        a = _GG(a, b, c, d, x[k + 13], S21, 0xA9E3E905);
+        d = _GG(d, a, b, c, x[k + 2], S22, 0xFCEFA3F8);
+        c = _GG(c, d, a, b, x[k + 7], S23, 0x676F02D9);
+        b = _GG(b, c, d, a, x[k + 12], S24, 0x8D2A4C8A);
+        a = _HH(a, b, c, d, x[k + 5], S31, 0xFFFA3942);
+        d = _HH(d, a, b, c, x[k + 8], S32, 0x8771F681);
+        c = _HH(c, d, a, b, x[k + 11], S33, 0x6D9D6122);
+        b = _HH(b, c, d, a, x[k + 14], S34, 0xFDE5380C);
+        a = _HH(a, b, c, d, x[k + 1], S31, 0xA4BEEA44);
+        d = _HH(d, a, b, c, x[k + 4], S32, 0x4BDECFA9);
+        c = _HH(c, d, a, b, x[k + 7], S33, 0xF6BB4B60);
+        b = _HH(b, c, d, a, x[k + 10], S34, 0xBEBFBC70);
+        a = _HH(a, b, c, d, x[k + 13], S31, 0x289B7EC6);
+        d = _HH(d, a, b, c, x[k + 0], S32, 0xEAA127FA);
+        c = _HH(c, d, a, b, x[k + 3], S33, 0xD4EF3085);
+        b = _HH(b, c, d, a, x[k + 6], S34, 0x4881D05);
+        a = _HH(a, b, c, d, x[k + 9], S31, 0xD9D4D039);
+        d = _HH(d, a, b, c, x[k + 12], S32, 0xE6DB99E5);
+        c = _HH(c, d, a, b, x[k + 15], S33, 0x1FA27CF8);
+        b = _HH(b, c, d, a, x[k + 2], S34, 0xC4AC5665);
+        a = _II(a, b, c, d, x[k + 0], S41, 0xF4292244);
+        d = _II(d, a, b, c, x[k + 7], S42, 0x432AFF97);
+        c = _II(c, d, a, b, x[k + 14], S43, 0xAB9423A7);
+        b = _II(b, c, d, a, x[k + 5], S44, 0xFC93A039);
+        a = _II(a, b, c, d, x[k + 12], S41, 0x655B59C3);
+        d = _II(d, a, b, c, x[k + 3], S42, 0x8F0CCC92);
+        c = _II(c, d, a, b, x[k + 10], S43, 0xFFEFF47D);
+        b = _II(b, c, d, a, x[k + 1], S44, 0x85845DD1);
+        a = _II(a, b, c, d, x[k + 8], S41, 0x6FA87E4F);
+        d = _II(d, a, b, c, x[k + 15], S42, 0xFE2CE6E0);
+        c = _II(c, d, a, b, x[k + 6], S43, 0xA3014314);
+        b = _II(b, c, d, a, x[k + 13], S44, 0x4E0811A1);
+        a = _II(a, b, c, d, x[k + 4], S41, 0xF7537E82);
+        d = _II(d, a, b, c, x[k + 11], S42, 0xBD3AF235);
+        c = _II(c, d, a, b, x[k + 2], S43, 0x2AD7D2BB);
+        b = _II(b, c, d, a, x[k + 9], S44, 0xEB86D391);
+        a = addUnsigned(a, AA);
+        b = addUnsigned(b, BB);
+        c = addUnsigned(c, CC);
+        d = addUnsigned(d, DD);
+    }
+
+    var temp = wordToHex(a) + wordToHex(b) + wordToHex(c) + wordToHex(d);
+
+    return temp.toLowerCase();
+}
 
 /**
  * Encodes an ISO-8859-1 string to UTF-8, this is meant to provide the same functionality
  * as the PHP utf8_encode function.
  *
  * @param   {string}    str     Standard ISO-8859-1 encoded string
- * @return  UTF-8 encoded version of the str param value
+ * @returns  UTF-8 encoded version of the str param value
  * @example _.utf8Encode('Hello World')
  *              // => Hello World
  */
-mixins.utf8Encode = function (str) {
+function utf8Encode(str) {
     if (_.isNull(str) || _.isUndefined(str) || str === '') return str;
 
     if (!_.isString(str) && !_.isNumber(str)) throw new Error('Illegal value type given to utf8Encode, expected a ISO-8859-1 encoded string, but received a ' + (typeof str === 'undefined' ? 'undefined' : _typeof(str)));
@@ -103,21 +362,22 @@ mixins.utf8Encode = function (str) {
     if (end > start) utftext += string.slice(start, stringl);
 
     return utftext;
-};
+}
 
 /**
  * Decodes a UTF-8 encoded string to the standard ISO-8859-1, this is meant to provide the same functionality
  * as the PHP utf8_decode function.
  *
  * @param   {string}    str     UTF-8 encoded string
- * @return  ISO-8859-1 decoded string
+ * @returns  ISO-8859-1 decoded string
  * @example _.utf8Decode('Hello World')
  *              // => Hello World
  */
-mixins.utf8Decode = function (str) {
+function utf8Decode(str) {
     if (_.isNull(str) || _.isUndefined(str) || str === '') return str;
 
-    if (!_.isString(str) && !_.isNumber(str)) throw new Error('Illegal value type given to utf8Decode, expected a UTF-8 encoded string, but received a ' + (typeof str === 'undefined' ? 'undefined' : _typeof(str)));
+    //if( ! _.isString( str ) && ! _.isNumber( str ))
+    //throw new Error( `Illegal value type given to utf8Decode, expected a UTF-8 encoded string, but received a ${typeof str}` )
 
     var tmp_arr = [],
         i = 0,
@@ -157,18 +417,18 @@ mixins.utf8Decode = function (str) {
     }
 
     return tmp_arr.join('');
-};
+}
 
 /**
  * Calculate the sha1 hash of a specific string. This is the equivalent of PHP's sha1()
  * function.
  *
  * @param   {string}    str     String to calculate hash for
- * @return  {string}    SHA1 hash
+ * @returns  {string}    SHA1 hash
  * @example _.sha1('test')
  *              // => a94a8fe5ccb19ba61c4c0873d391e987982fbbd3
  */
-mixins.sha1 = function (str) {
+function sha1(str) {
     var rotate_left = function rotate_left(n, s) {
         return n << s | n >>> 32 - s;
     };
@@ -213,7 +473,7 @@ mixins.sha1 = function (str) {
         E = undefined;
     var temp = undefined;
 
-    str = mixins.utf8Encode(str);
+    str = utf8Encode(str);
     var str_len = _.size(str);
 
     var word_array = [];
@@ -305,18 +565,18 @@ mixins.sha1 = function (str) {
     }
 
     return (cvt_hex(H0) + cvt_hex(H1) + cvt_hex(H2) + cvt_hex(H3) + cvt_hex(H4)).toLowerCase();
-};
+}
 
 /**
  * Generate a hash of a given string, using the provided salt
  *
  * @param   {string}    str     String to hash
  * @param   {string}    salt    Salt to use for hash
- * @return  {string}    base64 encoded hash
+ * @returns  {string}    base64 encoded hash
  * @example _.hash('superSecretPassword','secret-salt')
  *              // => ebA3UZET3LDQWzl <cut> TUnV5oRxAvOLsA==
  */
-mixins.hash = function (str, salt) {
+function makeHash(str, salt) {
     if (!_.isString(str) || !_.isString(salt)) throw new Error('_.hash() requires two string parameters, a string to hash and a salt');
 
     var h = crypto.createHash('sha512');
@@ -325,21 +585,21 @@ mixins.hash = function (str, salt) {
     h.update(salt);
 
     return h.digest('base64');
-};
+}
 
 /**
  * Return a randomly generated string - at a specific length
  *
  * @param   {number}    length  Length of the desored string (Default: 20)
- * @return  {string}
+ * @returns  {string}
  * @todo    Add the ability to specify the 'possible' string characters
  * @example _.randStr( 15 )
  *              // => gyC8Q9MABoEjGK6
  */
-mixins.randStr = function (length) {
+function randStr(length) {
     length = length || 20;
 
-    if (!mixins.isNumeric(length)) throw new Error('_.randStr needs a numeric value');
+    if (!isNumeric(length)) throw new Error('_.randStr needs a numeric value');
 
     var result = '';
 
@@ -350,7 +610,7 @@ mixins.randStr = function (length) {
     for (var i = 0; i < parseInt(length); i++) {
         result += possible.charAt(Math.floor(Math.random() * possible.length));
     }return result;
-};
+}
 
 /**
  * Return the type of a specific variable, much like the standard 'typeof', only
@@ -372,7 +632,7 @@ mixins.randStr = function (length) {
  * @param   {object}    flaggedVals     Values used to determine the real value types
  *                                      of flagged values (Only used if scrutinize is
  *                                      enabled)
- * @return  {string}    The variable type (string, array, object, boolean, etc)
+ * @returns  {string}    The variable type (string, array, object, boolean, etc)
  * @example _.typeof( [1,2] )       // array
  *          _.typeof( 'foo' )       // string
  *          _.typeof( true )        // boolean
@@ -382,7 +642,7 @@ mixins.randStr = function (length) {
  *          _.typeof( 'null' )      // string
  *          _.typeof( 'null',true ) // null
  */
-mixins.typeof = function (value, scrutinize, returnTypes, flaggedVals) {
+function getTypeof(value, scrutinize, returnTypes, flaggedVals) {
     // String representations of the value types (Overridden by
     // returnTypes if defined)
     var types = _.extend({
@@ -474,9 +734,9 @@ mixins.typeof = function (value, scrutinize, returnTypes, flaggedVals) {
     // prototypes toString() call
     // Note: Disabling coverage, since I can't find a value to reach this, and
     // it's just in case I missed something. It helps me sleep at night
-    return mixins.type(value).toLowerCase();
+    return getType(value).toLowerCase();
     /* $lab:coverage:on$ */
-};
+}
 
 /**
  * Substitute specific characters within a string with a specified replacement.
@@ -495,7 +755,7 @@ mixins.typeof = function (value, scrutinize, returnTypes, flaggedVals) {
  *          _.replaceAt( 'Hello World', [6,7,8,9,10] )
  *              // => Hello ?????
  */
-mixins.replaceAt = function (str, index, character) {
+function replaceAt(str, index, character) {
     character = character || '?';
     if (_.isArray(index)) {
         return __(str).map(function (s, i) {
@@ -504,7 +764,7 @@ mixins.replaceAt = function (str, index, character) {
     } else {
         return str.substr(0, index) + character + str.substr(index + character.length);
     }
-};
+}
 
 /**
  * Return items true type by grabbing the 2nd string content from
@@ -519,13 +779,13 @@ mixins.replaceAt = function (str, index, character) {
  *          _.type(() => {})
  *              // => function
  */
-mixins.type = function (item) {
+function getType(item) {
     var objType = Object.prototype.toString.call(item);
 
     var match = objType.match(/^\[object\s(.*)\]$/);
 
     return match[1].toLowerCase();
-};
+}
 
 /**
  * This performs a series of replacements in a string, using the items within
@@ -546,13 +806,13 @@ mixins.type = function (item) {
  *          _.multiReplace( 'Windows XP', [{ windows: 'Linux'}, {xp: 'RHEL'}], 'i' )
  *              // => Linux RHEL
  */
-mixins.multiReplace = function (str, replacements, modifiers) {
+function multiReplace(str, replacements, modifiers) {
     if (!str || !_.isString(str)) return str;
 
     if (!replacements) return str;
 
     // Replacements need to be an object, or an array with two values (which is verified later)
-    if (!_.isPlainObject(replacements) && !_.isArray(replacements)) throw new Error('Replacements need to be an array or plain object, you gave us a ' + mixins.type(str));
+    if (!_.isPlainObject(replacements) && !_.isArray(replacements)) throw new Error('Replacements need to be an array or plain object, you gave us a ' + getType(str));
 
     // Since we later expect for the replacements to be an object, check if its
     // an array, if so, reconstruct it into an object
@@ -590,7 +850,7 @@ mixins.multiReplace = function (str, replacements, modifiers) {
     });
 
     return str;
-};
+}
 
 /**
  * Swap the keys and values of a simple plain object
@@ -599,8 +859,8 @@ mixins.multiReplace = function (str, replacements, modifiers) {
  * @example _.swap({a:'b', c:'d'})
  *              // => {b:'a', d:'c'}
  */
-mixins.swap = function (obj) {
-    if (!_.isPlainObject(obj)) throw new Error('Only plain objects can be swapped, you gave us a ' + mixins.type(obj));
+function swap(obj) {
+    if (!_.isPlainObject(obj)) throw new Error('Only plain objects can be swapped, you gave us a ' + getType(obj));
 
     var result = {};
 
@@ -609,14 +869,14 @@ mixins.swap = function (obj) {
     });
 
     return result;
-};
+}
 
 /**
  * Return a new array containing only the unique objects inside the provided
  * array. Unlike _.uniq, this will check _every_ key/value in the array
  *
  * @param   {array}     arr     Array of structurally identical objects
- * @return  {array}
+ * @returns  {array}
  * @example
  *
  * const objs = [ { x: 1, y: 2 }, { a: 1, b: 2 }, { x: 1, y: 2 }]
@@ -626,7 +886,7 @@ mixins.swap = function (obj) {
  *
  * // => [ { x: 1, y: 2 }, { a: 1, b: 2 } ]
  */
-mixins.uniqObjs = function (arr) {
+function uniqObjs(arr) {
     // Make sure that the arr parameter is a defined & populated array of objects
     if (!_.isArray(arr) || !arr.length || !_.isObject(arr[0])) return false;
 
@@ -639,14 +899,14 @@ mixins.uniqObjs = function (arr) {
         // Use _.sortObj to sort the contents of the object by the keys, since stringify
         // will use the current order (which means identical objects in different orders
         // will be seen as discrepancies)
-        if (_.indexOf(uniqs, JSON.stringify(mixins.sortObj(obj))) === -1) {
-            uniqs.push(JSON.stringify(mixins.sortObj(obj)));
+        if (_.indexOf(uniqs, JSON.stringify(sortObj(obj))) === -1) {
+            uniqs.push(JSON.stringify(sortObj(obj)));
             return true;
         }
 
         return false;
     });
-};
+}
 
 /**
  * Check if the provided number is a float or integer value. This just tacks
@@ -654,7 +914,7 @@ mixins.uniqObjs = function (arr) {
  * to check if the value of parseFloat is the same as the provided number
  *
  * @param   {string|integer|number}  num     Number to check
- * @return  {boolean}
+ * @returns  {boolean}
  * @example
  *
  * _.isNumber( 123   )
@@ -665,17 +925,17 @@ mixins.uniqObjs = function (arr) {
  * // => true
  *
  */
-mixins.isNumeric = function (num) {
+function isNumeric(num) {
     return _.isNumber(num) || parseFloat(num) == num;
-};
+}
 
 /**
  * Validate a string against an RFC822 compliant pattern
  *
  * @param   {string}    email   Email address to validate against pattern
- * @return  {boolean}
+ * @returns  {boolean}
  */
-mixins.isEmail = function (email) {
+function isEmail(email) {
     // Must be a string!
     if (!_.isString(email)) return false;
 
@@ -685,7 +945,7 @@ mixins.isEmail = function (email) {
     // Only RFC822 compliant pattern that would work with JS
     return (/^([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22))*\x40([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d))*$/.test(email)
     );
-};
+}
 
 /**
  * Check if two values match each other. Basically sorts the object and
@@ -696,21 +956,21 @@ mixins.isEmail = function (email) {
  * @oaram   {*}         source      Item B to match to A
  * @oaram   {function}  customizer  Function to cuztomize the object and src
  *                                  (Just handed of to _.isMatch)
- * @return  {boolean}
+ * @returns  {boolean}
  *
  * _.sortMatch([1,2,3], [3,2,1])
  *
  * // => true
  *
  */
-mixins.sortMatch = function (object, source, customizer) {
+function sortMatch(object, source, customizer) {
     if (_.isUndefined(object) || _.isUndefined(source)) throw new Error('Must define two same-type values to sort and match');
 
-    if (mixins.type(object) !== mixins.type(source)) return false;
+    if (getType(object) !== getType(source)) return false;
 
     if (_.isPlainObject(object)) {
-        object = mixins.sortObj(object);
-        source = mixins.sortObj(source);
+        object = sortObj(object);
+        source = sortObj(source);
     } else if (_.isArray(object)) {
         object = object.sort();
         source = source.sort();
@@ -719,7 +979,7 @@ mixins.sortMatch = function (object, source, customizer) {
     }
 
     return _.isMatch(object, source, customizer);
-};
+}
 
 /**
  * Just a boolean comparison tool, Allows you to specify other true-type
@@ -743,13 +1003,13 @@ mixins.sortMatch = function (object, source, customizer) {
  *          bool( 'foo', [ 'foo', 'bar' ] ) === true
  *          bool( 'foo', [ 'bar', 'baz' ] ) === false
  */
-mixins.bool = function (value, trues, lower) {
-    if (_.isUndefined(trues)) trues = [];else if (_.isString(trues)) trues = [trues];else if (!_.isArray(trues)) throw new Error('Illegal additional true types, must be string or array, received: ' + mixins.type(trues));
+function bool(value, trues, lower) {
+    if (_.isUndefined(trues)) trues = [];else if (_.isString(trues)) trues = [trues];else if (!_.isArray(trues)) throw new Error('Illegal additional true types, must be string or array, received: ' + getType(trues));
 
     trues = _.union([1, '1', true, 'true'], trues);
 
     return _.indexOf(trues, !!lower === true ? value.toLowerCase() : value) !== -1;
-};
+}
 
 /**
  * Ensure a specific string ends with a certain character
@@ -761,9 +1021,9 @@ mixins.bool = function (value, trues, lower) {
  *          _.endWith('Something else.', '.')
  *              // => Something else.
  */
-mixins.endWith = function (str, end) {
+function endWith(str, end) {
     return _.endsWith(str, end) ? str : str + end;
-};
+}
 
 /**
  * Ensure a specific string starts with a certain character
@@ -780,9 +1040,9 @@ mixins.endWith = function (str, end) {
  *            .value()
  *            // => (Using startsWith and endsWith together)
  */
-mixins.startWith = function (str, start) {
+function startWith(str, start) {
     return _.startsWith(str, start) ? str : start + str;
-};
+}
 
 /**
  * Convert any new-line characters to HTML Line breaks, which can optionally be specified,
@@ -795,9 +1055,9 @@ mixins.startWith = function (str, start) {
  * @example _.nl2br("One\r\nTwo\n\rThree\nFour\rFive")
  *              // => One</br>Two</br>Three</br>Four</br>Five
  */
-mixins.nl2br = function (str, br) {
+function nl2br(str, br) {
     return str.split(/\r\n|\n\r|\n|\r/).join(br || '</br>');
-};
+}
 
 /**
  * Complete opposite of the _.nl2br - This replaces any HTML Line breaks with the line return character,
@@ -811,9 +1071,9 @@ mixins.nl2br = function (str, br) {
  * @example _.nl2br("One<br>Two</br>Three</BR>Four<BR>Five")
  *              // => One\r\nTwo\r\nThree\r\nFour\r\nFive
  */
-mixins.br2nl = function (str, nl) {
+function br2nl(str, nl) {
     return str.split(/<\/?br>/i).join(nl || "\r\n");
-};
+}
 
 /**
  * Censor any common profanity words by replacing it with a specified word, or masking all or
@@ -835,7 +1095,7 @@ mixins.br2nl = function (str, nl) {
  * @example _.censor('damn')
  *              // => d**n
  */
-mixins.censor = function (word, masker, maskType) {
+function censor(word, masker, maskType) {
     if (!word) return word;
 
     masker = masker || '*';
@@ -857,31 +1117,31 @@ mixins.censor = function (word, masker, maskType) {
             break;
 
         case 'single':
-            return mixins.replaceAt(word, 2, masker);
+            return replaceAt(word, 2, masker);
             break;
 
         case 'firstlast':
-            return mixins.replaceAt(word, [0, word.length - 1], masker);
+            return replaceAt(word, [0, word.length - 1], masker);
             break;
 
         case 'middle':
             var middles = _(word).map(function (s, i) {
                 return i;
             }).drop().dropRight().value();
-            return mixins.replaceAt(word, middles, masker);
+            return replaceAt(word, middles, masker);
             break;
 
         default:
             // Partial
             var replaceNum = Math.floor(55 / 100 * word.length);
             var range = _.range(1, replaceNum + 1);
-            return mixins.replaceAt(word, range, masker);
+            return replaceAt(word, range, masker);
             break;
     }
 
     // If we were given a phrase as the mask, then just replace the entire word with that
     else return masker;
-};
+}
 
 /**
  * Generate a salted hash of a specified password string - Similar to PHPs
@@ -889,11 +1149,11 @@ mixins.censor = function (word, masker, maskType) {
  * making it easier to store in a database, and easier to verify
  *
  * @param   {string}    password        Password to hash
- * @return  {string}    109 character password hash (salt is first 20 characters)
+ * @returns  {string}    109 character password hash (salt is first 20 characters)
  * @example _.passwordHash('secret')
  *              // => LIE9OKy0g$eNB <cut> XFMcfx78L5SuZZivA==
  */
-mixins.passwordHash = function (password) {
+function passwordHash(password) {
     if (!password) throw new Error('No password was given to hash');
 
     if (!_.isString(password)) throw new Error('Must provide a STRING as a password');
@@ -901,25 +1161,25 @@ mixins.passwordHash = function (password) {
     // Generate the salt
     // THIS MUST NOT CHANGE! If this value is not the same as what
     // passwordVerify expects, no hash will be validated
-    var salt = mixins.randStr(20);
+    var salt = randStr(20);
 
     // Return the salted hash with the salt prepended to it
-    return salt + mixins.hash(password, salt);
-};
+    return salt + makeHash(password, salt);
+}
 
 /**
  * Verify a password against a password hash generated by _.passwordHash
  *
  * @param   {string}    password    Password to verify
  * @param   {string}    passwdHash  String generated by _.passwordHash
- * @return  {boolean}   TRUE if the result of a hash generated with the
+ * @returns  {boolean}   TRUE if the result of a hash generated with the
  *                      same password and the salt found in passwordHash,
  *                      matches the hash inside passwordHash
  * @example const hash = _.passwordHash('secret')
  *          _.passwordVerify('secret', hash)
  *              // => true
  */
-mixins.passwordVerify = function (password, passwdHash) {
+function passwordVerify(password, passwdHash) {
     if (!password || !passwdHash) throw new Error('Need to provide both a password and a hash to verify');
 
     if (!_.isString(password) || !_.isString(passwdHash)) throw new Error('Password and hash both need to be strings');
@@ -933,15 +1193,15 @@ mixins.passwordVerify = function (password, passwdHash) {
     var hash = passwdHash.substr(20);
 
     // Check the hash against a hash generated with the same data
-    return mixins.hash(password, salt) === hash;
-};
+    return makeHash(password, salt) === hash;
+}
 
 /**
  * Return a copy of the object with the content sorted by the keys
  *
  * @param   {object}    obj         Object to sort by keys
  * @param   {function}  comparator  Function to compare/sort the elements
- * @return  {object}
+ * @returns  {object}
  * @example
  *
  * const obj = {b: 3, c: 2, a: 1}
@@ -958,13 +1218,13 @@ mixins.passwordVerify = function (password, passwdHash) {
  * // => {a: 1, c: 2, b: 3}
  *
  */
-mixins.sortObj = function (obj, comparator) {
+function sortObj(obj, comparator) {
     // Make sure we were given an object...
-    if (!_.isObject(obj)) throw new Error('_.sortObj expects an object obj is: ' + mixins.type(obj));
+    if (!_.isObject(obj)) throw new Error('_.sortObj expects an object obj is: ' + getType(obj));
 
     // If comparator is provided, then it needs to be a function, if it isn't
     // a function, then throw an error
-    if (!_.isUndefined(comparator) && !_.isFunction(comparator)) throw new Error('_.sortObj expects the comparator to be a function (if defined), but received a: ' + mixins.type(comparator));
+    if (!_.isUndefined(comparator) && !_.isFunction(comparator)) throw new Error('_.sortObj expects the comparator to be a function (if defined), but received a: ' + getType(comparator));
 
     // Create an array of the object keys, sorted either alpha/numeric
     // by default, or using the comparator if defined
@@ -978,7 +1238,7 @@ mixins.sortObj = function (obj, comparator) {
     return _.zipObject(keys, _.map(keys, function (key) {
         return obj[key];
     }));
-};
+}
 
 /**
  * Validate that an array, or objects in an array, or elements within the
@@ -989,13 +1249,13 @@ mixins.sortObj = function (obj, comparator) {
  *                                  we are to check that a specific element in
  *                                  those objects is unique, then this should be
  *                                  the name of the element in the object
- * @return  {boolean}
+ * @returns  {boolean}
  * @example _.isUniq( [ 1, 2, 3, 2 ] ) === false
  *          _.isUniq( [ {a: 1}, {a: 2}, {a: 1} ] ) === false
  *          _.isUniq( [ {a: 1, b: 2}, {a: 2, b: 5}, {a: 1, b: 2} ], 'b') === false
  */
-mixins.isUniq = function (collection, element) {
-    if (!_.isArray(collection)) throw new Error('Collection needs to be an array, you provided a ' + mixins.typeof(collection));
+function isUniq(collection, element) {
+    if (!_.isArray(collection)) throw new Error('Collection needs to be an array, you provided a ' + getTypeof(collection));
 
     if (collection.length === 0) return true;
 
@@ -1003,7 +1263,7 @@ mixins.isUniq = function (collection, element) {
     if (_.isObject(collection[0])) {
         // If no specific element is provided, then uniq the entire object
         if (_.isUndefined(element)) {
-            return mixins.uniqObjs(collection).length === collection.length;
+            return uniqObjs(collection).length === collection.length;
         }
         // If an element was provided, then check that just that element is unique
         else {
@@ -1013,7 +1273,7 @@ mixins.isUniq = function (collection, element) {
 
     // Here, we can just unique the array and verify the length
     return _.uniq(collection).length === collection.length;
-};
+}
 
 /**
  * Remove items from object, mutating the original object by removing specified element(s),
@@ -1023,11 +1283,11 @@ mixins.isUniq = function (collection, element) {
  *
  * @param   {object}        obj     Object (to mutate)
  * @param   {array|string}  del     Element(s) to remove from obj
- * @return  {object}        Object of items removed from obj param
+ * @returns  {object}        Object of items removed from obj param
  * @note    This will mutate the original object, removing the `del` element(s)
  * @todo    Need to add some sanity checking, some more logic, etc etc
  */
-mixins.removeObj = function (obj, del) {
+function removeObj(obj, del) {
     var picked = _.pick(obj, del);
 
     if (_.isArray(del)) {
@@ -1039,18 +1299,7 @@ mixins.removeObj = function (obj, del) {
     }
 
     return picked;
-};
-
-/**
- * UNDER CONSTRUCTION
- * Alternate through elements in an array (in order), returning the next element
- * every time _.alternator() is ran with the same array. Based off of CodeIgniters
- * alternator function in the string helper
- */
-mixins.alternator = function () {
-    console.log('Params', [].concat(Array.prototype.slice.call(_arguments)));
-    return ++_internals.alternator;
-};
+}
 
 /**
  * UNDER CONSTRUCTION
@@ -1058,9 +1307,9 @@ mixins.alternator = function () {
  * mysql_real_escape_string
  *
  * @param   {string}    content     String to use in the MySQL query
- * @return  {string}    Safe version of the content string parameter
+ * @returns  {string}    Safe version of the content string parameter
  */
-mixins.mysqlEscape = function (content) {
+function mysqlEscape(content) {
     var replacements = [["\\", "\\\\"], ["\'", "\\\'"], ["\"", "\\\""], ["\n", "\\\n"], ["\r", "\\\r"], ["\x00", "\\\x00"], ["\x1a", "\\\x1a"]];
 
     var map = {
@@ -1073,7 +1322,7 @@ mixins.mysqlEscape = function (content) {
         "\x1a": "\\\x1a"
     };
 
-    return mixins.replace(content, map);
+    return replace(content, map);
 
     /*return content
      .replace("\\", "\\\\")
@@ -1084,88 +1333,88 @@ mixins.mysqlEscape = function (content) {
      .replace("\x00", "\\\x00")
      .replace("\x1a", "\\\x1a")
      */
-};
+}
 
 /**
  * Check if a specified string is in snake_case format
  *
  * @param   {string}    str     String to inspect
- * @return  {boolean}
+ * @returns  {boolean}
  */
-mixins.isSnake = function (str) {
+function isSnake(str) {
     return str === _.snakeCase(str);
-};
+}
 
 /**
  * Check if a specified string is in camelCase format
  *
  * @param   {string}    str     String to inspect
- * @return  {boolean}
+ * @returns  {boolean}
  */
-mixins.isCamel = function (str) {
+function isCamel(str) {
     return str === _.camelCase(str);
-};
+}
 
 /**
  * Check if a specified string is in kebab-case format
  *
  * @param   {string}    str     String to inspect
- * @return  {boolean}
+ * @returns  {boolean}
  */
-mixins.isKebab = function (str) {
+function isKebab(str) {
     return str === _.kebabCase(str);
-};
+}
 
 /**
  * Check if a specified string is in Start Case format
  *
  * @param   {string}    str     String to inspect
- * @return  {boolean}
+ * @returns  {boolean}
  */
-mixins.isStart = function (str) {
+function isStart(str) {
     return str === _.startCase(str);
-};
+}
 
 /**
  * Check if a specified string is in lower case format
  *
  * @param   {string}    str     String to inspect
- * @return  {boolean}
+ * @returns  {boolean}
  */
-mixins.isLower = function (str) {
+function isLower(str) {
     return str === _.lowerCase(str);
-};
+}
 
 /**
  * Check if a specified string is in UPPER CASE format
  *
  * @param   {string}    str     String to inspect
- * @return  {boolean}
+ * @returns  {boolean}
  */
-mixins.isUpper = function (str) {
+function isUpper(str) {
     return str === _.upperCase(str);
-};
+}
 
 /**
  * Retrieve the case type of a specified string
  *
  * @param   {string}            str     String to inspect
- * @return  {string|undefined}  Will return one of: snake,
+ * @returns  {string|undefined}  Will return one of: snake,
  *                              camel, kebab, start, lower,
  *                              upper or undefined if none
  */
-mixins.getCase = function (str) {
-    if (mixins.isSnake(str)) return 'snake';else if (mixins.isCamel(str)) return 'camel';else if (mixins.isKebab(str)) return 'kebab';else if (mixins.isStart(str)) return 'start';else if (mixins.isLower(str)) return 'lower';else if (mixins.isUpper(str)) return 'upper';else return undefined;
-};
+function getCase(str) {
+    if (isSnake(str)) return 'snake';else if (isCamel(str)) return 'camel';else if (isKebab(str)) return 'kebab';else if (isStart(str)) return 'start';else if (isLower(str)) return 'lower';else if (isUpper(str)) return 'upper';else return undefined;
+}
 
 /**
  * Verify a string is in a specified format.
  *
  * @param   {string}    theCase The case to validate
  * @param   {string}    str     String to inspect
- * @return  {boolean}
+ * @returns  {boolean}
  */
-mixins.isCase = function (theCase, str) {
+function isCase(theCase, str) {
     switch (theCase) {
         case 'snake':
             return _.snakeCase(str) === str;
@@ -1195,7 +1444,7 @@ mixins.isCase = function (theCase, str) {
             return false;
             break;
     }
-};
+}
 
 /**
  * Verify that a collection (string, array or object) has all listed values, basically
@@ -1204,13 +1453,13 @@ mixins.isCase = function (theCase, str) {
  * @param   {array|object|string}   collection  The collection to search
  * @param   {mixed}                 values      The value or values to search for
  * @param   {number}                fromIndex   The index to search from.
- * @return  {boolean}   Returns `true` based on the result of _.includes
+ * @returns  {boolean}   Returns `true` based on the result of _.includes
  * @example _.includesAll( [1,2,3], [1,3]) === true
  *          _.includesAll( [1,2,3], [1,2], 2) === false
  *          _.includesAll( {user: 'fred', age: 40 }, ['fred', 40]) === true
  *          _.includesAll( 'abcdef', ['a','d] ) === true
  */
-mixins.includesAll = function (collection, values, fromIndex) {
+function includesAll(collection, values, fromIndex) {
     // Make sure we were given an array as the collection
     if (!_.isArray(collection) && !_.isObject(collection) && !_.isString(collection)) throw new Error('_.includesAll: Expecting an array, string or object as the collection');
 
@@ -1228,8 +1477,148 @@ mixins.includesAll = function (collection, values, fromIndex) {
     // _.includes, according to the documentation, it can accept "anything" as the value
     // (But it doesn't work as expected when given an array), hence this function
     return _.includes(collection, values, fromIndex);
-};
+}
 
-__.mixin(mixins);
+/**
+ * Return the maximum value of all arguments passed. This is the same thing as _.max,
+ * only instead of an array, it takes all the arguments
+ *
+ * @var     {array} arguments   Pulls the arguments provided
+ * @todo    Create unit tests
+ * @returns  {number}    Maximum value, retrieved by _.max()
+ */
+function maxOf() {
+    return _.max(_.chain(arguments).map(function (n) {
+        return parseInt(n);
+    }).value());
+}
 
+/**
+ * Return the minimum value of all arguments passed. This is the same thing as _.min,
+ * only instead of an array, it takes all the arguments
+ *
+ * @var     {array} arguments   Pulls the arguments provided
+ * @todo    Create unit tests
+ * @returns  {number}    Minimum value, retrieved by _.min()
+ */
+function minOf() {
+    return _.min(_.chain(arguments).map(function (n) {
+        return parseInt(n);
+    }).value());
+}
+
+/**
+ * Use the Levenshtein formula to calculate the distance in the similarities
+ * of two separate strings, which can be anywhere from 0 (strings are identical)
+ * to the length of the longer string provided (100% different). The higher the
+ * distance, the more different the strings are, but the distance can only be
+ * as high as high as the number of characters in the longer string
+ *
+ * @param   {string|number}    strA    String A
+ * @param   {string|number}    strB    String .... Yep, B
+ * @returns  {number}            Levenshtein distance value
+ * @todo    Create unit tests
+ * @example levenshtein('foo','foo') === 0
+ *          levenshtein('foo','bar') === 3
+ */
+function levenshtein(strA, strB) {
+    // Make sure we were given Strings or Numbers, and nothing else
+    if (_.isString(strA) && !_.isNumber(strA) || _.isString(strB) && !_.isNumber(strB)) throw new Error('Need to provide two strings or numbers to differentiate');
+
+    var cost = [];
+    var n = strA.length;
+    var m = strB.length;
+    var i = undefined;
+    var j = undefined;
+
+    if (n === 0 || m === 0) return;
+
+    for (i = 0; i <= n; i++) {
+        _.set(cost, '[' + i + '][0]', i);
+    }
+
+    for (j = 0; j <= m; j++) {
+        cost[0][j] = j;
+    }
+    //console.log('cost',cost)
+
+    for (i = 1; i <= n; i++) {
+        var x = strA.charAt(i - 1);
+
+        for (j = 1; j <= m; j++) {
+            var y = strB.charAt(j - 1);
+
+            if (x == y) cost[i][j] = cost[i - 1][j - 1];else cost[i][j] = 1 + minOf(cost[i - 1][j - 1], cost[i][j - 1], cost[i - 1][j]);
+        }
+    }
+
+    return cost[n][m];
+}
+
+/**
+ * String Difference Distance (In percentages). This basically returns
+ * the Levenshtein value as a percentage
+ *
+ * @param   {string|number}    strA    String A
+ * @param   {string|number}    strB    String .... Yep, B
+ * @returns  {number}            Levenshtein distance percentage (WITHOUT the % on the end)
+ * @todo    Create unit tests
+ * @example strDist('foo','foo') === 0
+ *          strDist('foo','bar') === 100
+ *          strDist('something','somewhere') === 44.44
+ */
+function strDist(strA, strB) {
+    var distance = levenshtein(strA, strB);
+
+    if (distance === false) return false;
+
+    return parseFloat(distance * 100 / maxOf(strA.length, strB.length));
+}
+
+// Mixin the above functions into the fresh version of Lodash....r
+__.mixin({
+    utf8Encode: utf8Encode,
+    utf8Decode: utf8Decode,
+    sha1: sha1,
+    md5: md5,
+    hash: makeHash,
+    randStr: randStr,
+    typeof: getTypeof,
+    replaceAt: replaceAt,
+    type: getType,
+    multiReplace: multiReplace,
+    swap: swap,
+    uniqObjs: uniqObjs,
+    isNumeric: isNumeric,
+    isEmail: isEmail,
+    sortMatch: sortMatch,
+    bool: bool,
+    endWith: endWith,
+    startWith: startWith,
+    nl2br: nl2br,
+    br2nl: br2nl,
+    censor: censor,
+    passwordHash: passwordHash,
+    passwordVerify: passwordVerify,
+    sortObj: sortObj,
+    isUniq: isUniq,
+    removeObj: removeObj,
+    alternator: alternator,
+    mysqlEscape: mysqlEscape,
+    isSnake: isSnake,
+    isCamel: isCamel,
+    isKebab: isKebab,
+    isStart: isStart,
+    isLower: isLower,
+    isUpper: isUpper,
+    getCase: getCase,
+    isCase: isCase,
+    includesAll: includesAll,
+    maxOf: maxOf,
+    minOf: minOf,
+    levenshtein: levenshtein,
+    strDist: strDist
+});
+
+// ... Then export it
 module.exports = __;
