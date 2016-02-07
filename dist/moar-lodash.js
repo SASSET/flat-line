@@ -1,10 +1,25 @@
 'use strict';
 
 /**
- * Some of the mixins were originally from phpjs.org methods, and were modified to use some of the lodash methods,
+ * @title Lodash Mixins aka moar-lodash
+ * @description Extra useful Lodash mixins
+ * @requires lodash, crypto, ./data.js
+ *
+ * Note: A few of the mixins were originally from phpjs.org methods, and were modified to use some of the lodash methods,
  * and to work as a mixin with the other methods. Also, they may have been optimized a bit, as they may have originally
- * been created some time ago. The methods that were originally from phpjs.org are: utf8Encode, utf8Decode and sha1
+ * been created some time ago. The methods that were originally from phpjs.org are: utf8Encode, utf8Decode and sha1.
+ * Authors of borrowed functions are noted inside the functions themselves
+ *
+ * @author Justin Hyland (Mostly)
+ * @url https://www.npmjs.com/package/moar-lodash
+ * @see https://github.com/jhyland87/lodash-mixins
+ * @version 2.0.0
+ * @todo Split all functions into separate .js files; which can all be loaded by loading the index
  */
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
 
@@ -13,13 +28,19 @@ var _ = require('lodash');
 // Get a fresh copy of lodash, since implementing mixins in the instance
 // being used to add the mixins, doesn't work very well
 var __ = _.runInContext();
+
+var _m = _.runInContext();
+
+// Used for makeHash
 var crypto = require('crypto');
 
+// Functions and storage for internal use only
 var _internals = {
     alternator: {
         i: 0,
         params: null
     },
+    uncountable: require('./data').uncountable,
     censored: require('./data').censored,
     htmlEntities: {
         '&': '&amp;',
@@ -1286,6 +1307,7 @@ function isUniq(collection, element) {
  * @returns  {object}        Object of items removed from obj param
  * @note    This will mutate the original object, removing the `del` element(s)
  * @todo    Need to add some sanity checking, some more logic, etc etc
+ * @todo    This should be able to take a function for the del
  */
 function removeObj(obj, del) {
     var picked = _.pick(obj, del);
@@ -1575,8 +1597,36 @@ function strDist(strA, strB) {
     return parseFloat(distance * 100 / maxOf(strA.length, strB.length));
 }
 
-// Mixin the above functions into the fresh version of Lodash....r
-__.mixin({
+function isCountable(noun) {
+    return !_.includes(_internals.uncountable, noun);
+}
+
+function plural(str) {
+    if (str.lastChar() === 'y') {
+        if (str.charAt(str.length - 2).isVowel()) {
+            // If the y has a vowel before it (i.e. toys), then you just add the s.
+            return str + 's';
+        } else {
+            // If a this ends in y with a consonant before it (fly), you drop the y and add -ies to make it plural.
+            return str.slice(0, -1) + 'ies';
+        }
+    } else if (str.substring(str.length - 2) === 'us') {
+        // ends in us -> i, needs to preceede the generic 's' rule
+        return str.slice(0, -2) + 'i';
+    } else if (['ch', 'sh'].indexOf(str.substring(str.length - 2)) !== -1 || ['x', 's'].indexOf(str.lastChar()) !== -1) {
+        // If a this ends in ch, sh, x, s, you add -es to make it plural.
+        return str + 'es';
+    } else {
+        // anything else, just add s
+        return str + 's';
+    }
+}
+
+function isMdbId(str) {
+    return new RegExp(/^[a-z0-9]{24}$/).test(str);
+}
+
+var defaultMixins = {
     utf8Encode: utf8Encode,
     utf8Decode: utf8Decode,
     sha1: sha1,
@@ -1617,8 +1667,16 @@ __.mixin({
     maxOf: maxOf,
     minOf: minOf,
     levenshtein: levenshtein,
-    strDist: strDist
-});
+    strDist: strDist,
+    isCountable: isCountable
+};
 
+// Mixin the above functions into the fresh version of Lodash....
+__.mixin(defaultMixins);
+
+_m.mixin(_.assignIn(defaultMixins, { isMdbId: isMdbId }));
 // ... Then export it
-module.exports = __;
+//module.exports = __
+
+exports.default = __;
+exports._m = _m;

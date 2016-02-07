@@ -1,9 +1,20 @@
 'use strict'
 
 /**
- * Some of the mixins were originally from phpjs.org methods, and were modified to use some of the lodash methods,
+ * @title Lodash Mixins aka moar-lodash
+ * @description Extra useful Lodash mixins
+ * @requires lodash, crypto, ./data.js
+ *
+ * Note: A few of the mixins were originally from phpjs.org methods, and were modified to use some of the lodash methods,
  * and to work as a mixin with the other methods. Also, they may have been optimized a bit, as they may have originally
- * been created some time ago. The methods that were originally from phpjs.org are: utf8Encode, utf8Decode and sha1
+ * been created some time ago. The methods that were originally from phpjs.org are: utf8Encode, utf8Decode and sha1.
+ * Authors of borrowed functions are noted inside the functions themselves
+ *
+ * @author Justin Hyland (Mostly)
+ * @url https://www.npmjs.com/package/moar-lodash
+ * @see https://github.com/jhyland87/lodash-mixins
+ * @version 2.0.0
+ * @todo Split all functions into separate .js files; which can all be loaded by loading the index
  */
 
 const _ = require('lodash')
@@ -11,13 +22,19 @@ const _ = require('lodash')
 // Get a fresh copy of lodash, since implementing mixins in the instance
 // being used to add the mixins, doesn't work very well
 const __ = _.runInContext()
+
+const _m = _.runInContext()
+
+// Used for makeHash
 const crypto = require('crypto')
 
+// Functions and storage for internal use only
 const _internals = {
     alternator: {
         i: 0,
         params: null
     },
+    uncountable: require('./data').uncountable,
     censored: require('./data').censored,
     htmlEntities: {
         '&': '&amp;',
@@ -27,7 +44,6 @@ const _internals = {
         "'": '&#039;'
     }
 }
-
 
 /**
  * Alternate through the parameters provided, returning the next one in line every time.
@@ -1342,6 +1358,7 @@ function isUniq ( collection, element ) {
  * @returns  {object}        Object of items removed from obj param
  * @note    This will mutate the original object, removing the `del` element(s)
  * @todo    Need to add some sanity checking, some more logic, etc etc
+ * @todo    This should be able to take a function for the del
  */
 function removeObj ( obj, del )  {
     const picked = _.pick( obj, del )
@@ -1656,50 +1673,93 @@ function strDist( strA, strB ) {
     return parseFloat( (distance * 100) / maxOf( strA.length, strB.length ))
 }
 
-// Mixin the above functions into the fresh version of Lodash....r
-__.mixin( {
-    utf8Encode: utf8Encode,
-    utf8Decode: utf8Decode,
-    sha1: sha1,
+function isCountable( noun ){
+    return ! _.includes( _internals.uncountable, noun )
+}
+
+function plural( str ){
+    if (str.lastChar() === 'y') {
+        if ( (str.charAt(str.length - 2)).isVowel() ) {
+            // If the y has a vowel before it (i.e. toys), then you just add the s.
+            return str + 's';
+        }
+        else {
+            // If a this ends in y with a consonant before it (fly), you drop the y and add -ies to make it plural.
+            return str.slice(0, -1) + 'ies';
+        }
+    }
+    else if ( str.substring( str.length - 2) === 'us') {
+        // ends in us -> i, needs to preceede the generic 's' rule
+        return str.slice(0, -2) + 'i';
+    }
+    else if (['ch', 'sh'].indexOf( str.substring( str.length - 2)) !== -1 || ['x','s'].indexOf(str.lastChar()) !== -1) {
+        // If a this ends in ch, sh, x, s, you add -es to make it plural.
+        return str + 'es';
+    }
+    else {
+        // anything else, just add s
+        return str + 's';
+    }
+}
+
+/**
+ * Check if a string is in the MongoDB ObjectId format, meaning 24 characters, alpha-numeric, and lowercase
+ *
+ * @param   {string}    str     String to verify
+ * @returns {boolean}   Result of regex check
+ * @todo    Possibly import Mongoose and check if str instanceof Schema.Types.ObjectId
+ */
+function isMdbId( str ){
+    return new RegExp( /^[a-z0-9]{24}$/ ).test( str )
+}
+
+const defaultMixins = {
     md5: md5,
-    hash: makeHash,
-    randStr: randStr,
-    typeof: getTypeof,
-    replaceAt: replaceAt,
-    type: getType,
-    multiReplace: multiReplace,
     swap: swap,
-    uniqObjs: uniqObjs,
-    isNumeric: isNumeric,
-    isEmail: isEmail,
-    sortMatch: sortMatch,
     bool: bool,
-    endWith: endWith,
-    startWith: startWith,
+    sha1: sha1,
+    hash: makeHash,
+    type: getType,
     nl2br: nl2br,
     br2nl: br2nl,
+    maxOf: maxOf,
+    minOf: minOf,
+    isCase: isCase,
+    typeof: getTypeof,
     censor: censor,
-    passwordHash: passwordHash,
-    passwordVerify: passwordVerify,
-    sortObj: sortObj,
     isUniq: isUniq,
-    removeObj: removeObj,
-    alternator: alternator,
-    mysqlEscape: mysqlEscape,
+    sortObj: sortObj,
     isSnake: isSnake,
+    randStr: randStr,
     isCamel: isCamel,
     isKebab: isKebab,
     isStart: isStart,
     isLower: isLower,
     isUpper: isUpper,
     getCase: getCase,
-    isCase: isCase,
-    includesAll: includesAll,
-    maxOf: maxOf,
-    minOf: minOf,
+    strDist: strDist,
+    isMdbId: isMdbId,
+    isEmail: isEmail,
+    endWith: endWith,
+    uniqObjs: uniqObjs,
+    replaceAt: replaceAt,
+    isNumeric: isNumeric,
+    startWith: startWith,
+    sortMatch: sortMatch,
+    removeObj: removeObj,
+    utf8Encode: utf8Encode,
+    utf8Decode: utf8Decode,
+    alternator: alternator,
+    mysqlEscape: mysqlEscape,
+    isCountable: isCountable,
     levenshtein: levenshtein,
-    strDist: strDist
-} )
+    includesAll: includesAll,
+    passwordHash: passwordHash,
+    multiReplace: multiReplace,
+    passwordVerify: passwordVerify
+}
 
-// ... Then export it
+// Mixin the above functions into the fresh version of Lodash....
+__.mixin( defaultMixins )
+
 module.exports = __

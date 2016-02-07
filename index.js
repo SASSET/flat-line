@@ -1,1 +1,1 @@
-module.exports = require('./src/lodash-mixins');
+module.exports = require('./src/moar-lodash');
