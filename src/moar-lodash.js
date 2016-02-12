@@ -1702,16 +1702,6 @@ function plural( str ){
     }
 }
 
-/**
- * Check if a string is in the MongoDB ObjectId format, meaning 24 characters, alpha-numeric, and lowercase
- *
- * @param   {string}    str     String to verify
- * @returns {boolean}   Result of regex check
- * @todo    Possibly import Mongoose and check if str instanceof Schema.Types.ObjectId
- */
-function isMdbId( str ){
-    return new RegExp( /^[a-z0-9]{24}$/ ).test( str )
-}
 
 const defaultMixins = {
     md5: md5,
@@ -1738,7 +1728,6 @@ const defaultMixins = {
     isUpper: isUpper,
     getCase: getCase,
     strDist: strDist,
-    isMdbId: isMdbId,
     isEmail: isEmail,
     endWith: endWith,
     uniqObjs: uniqObjs,
@@ -1762,4 +1751,5 @@ const defaultMixins = {
 // Mixin the above functions into the fresh version of Lodash....
 __.mixin( defaultMixins )
 
+// module.exports = exports
 module.exports = __

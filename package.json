@@ -1,6 +1,6 @@
 {
   "name": "moar-lodash",
-  "version": "2.1.1",
+  "version": "2.2.1",
   "description": "Adding some other useful features to Lodash via the Mixins method",
   "main": "index.js",
   "scripts": {
@@ -12,7 +12,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jhyland87/lodash-mixins.git"
+    "url": "git+https://github.com/jhyland87/moar-lodash.git"
   },
   "author": "Justin Hyland",
   "license": "ISC",

@@ -17,10 +17,6 @@
  * @todo Split all functions into separate .js files; which can all be loaded by loading the index
  */
 
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
 function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
 
 var _ = require('lodash');
@@ -1622,61 +1618,53 @@ function plural(str) {
     }
 }
 
-function isMdbId(str) {
-    return new RegExp(/^[a-z0-9]{24}$/).test(str);
-}
-
 var defaultMixins = {
-    utf8Encode: utf8Encode,
-    utf8Decode: utf8Decode,
-    sha1: sha1,
     md5: md5,
-    hash: makeHash,
-    randStr: randStr,
-    typeof: getTypeof,
-    replaceAt: replaceAt,
-    type: getType,
-    multiReplace: multiReplace,
     swap: swap,
-    uniqObjs: uniqObjs,
-    isNumeric: isNumeric,
-    isEmail: isEmail,
-    sortMatch: sortMatch,
     bool: bool,
-    endWith: endWith,
-    startWith: startWith,
+    sha1: sha1,
+    hash: makeHash,
+    type: getType,
     nl2br: nl2br,
     br2nl: br2nl,
+    maxOf: maxOf,
+    minOf: minOf,
+    isCase: isCase,
+    typeof: getTypeof,
     censor: censor,
-    passwordHash: passwordHash,
-    passwordVerify: passwordVerify,
-    sortObj: sortObj,
     isUniq: isUniq,
-    removeObj: removeObj,
-    alternator: alternator,
-    mysqlEscape: mysqlEscape,
+    sortObj: sortObj,
     isSnake: isSnake,
+    randStr: randStr,
     isCamel: isCamel,
     isKebab: isKebab,
     isStart: isStart,
     isLower: isLower,
     isUpper: isUpper,
     getCase: getCase,
-    isCase: isCase,
-    includesAll: includesAll,
-    maxOf: maxOf,
-    minOf: minOf,
-    levenshtein: levenshtein,
     strDist: strDist,
-    isCountable: isCountable
+    isEmail: isEmail,
+    endWith: endWith,
+    uniqObjs: uniqObjs,
+    replaceAt: replaceAt,
+    isNumeric: isNumeric,
+    startWith: startWith,
+    sortMatch: sortMatch,
+    removeObj: removeObj,
+    utf8Encode: utf8Encode,
+    utf8Decode: utf8Decode,
+    alternator: alternator,
+    mysqlEscape: mysqlEscape,
+    isCountable: isCountable,
+    levenshtein: levenshtein,
+    includesAll: includesAll,
+    passwordHash: passwordHash,
+    multiReplace: multiReplace,
+    passwordVerify: passwordVerify
 };
 
 // Mixin the above functions into the fresh version of Lodash....
 __.mixin(defaultMixins);
 
-_m.mixin(_.assignIn(defaultMixins, { isMdbId: isMdbId }));
-// ... Then export it
-//module.exports = __
-
-exports.default = __;
-exports._m = _m;
+// module.exports = exports
+module.exports = __;
