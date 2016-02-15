@@ -1702,6 +1702,21 @@ function plural( str ){
     }
 }
 
+/**
+ * Merge multiple objects together without mutating the original object
+ * This basically just hands everything off to _.merge, just adds an empty object to the beginning, so
+ *      _.merge( {}, ObjsA, ObjsB )
+ * would be the same as
+ *      _.mergeObjs( ObjsA, ObjsB )
+ *
+ * @param   {...object} [sources] The source objects
+ * @returns {object}    Neewly merged object
+ * @example _.mergeObjs( { a: 1 }, { b: 2 }, { c: 3 } )
+ *          // => { a: 1, b: 2, c: 3 }
+ */
+function mergeObjs( sources ){
+    return _.merge.apply( this, _.flatten( [ {}, arguments || [] ]))
+}
 
 const defaultMixins = {
     md5: md5,
@@ -1732,6 +1747,7 @@ const defaultMixins = {
     endWith: endWith,
     uniqObjs: uniqObjs,
     replaceAt: replaceAt,
+    mergeObjs: mergeObjs,
     isNumeric: isNumeric,
     startWith: startWith,
     sortMatch: sortMatch,
