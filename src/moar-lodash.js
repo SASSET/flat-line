@@ -1710,12 +1710,41 @@ function plural( str ){
  *      _.mergeObjs( ObjsA, ObjsB )
  *
  * @param   {...object} [sources] The source objects
- * @returns {object}    Neewly merged object
+ * @returns {object}    Newly merged object
  * @example _.mergeObjs( { a: 1 }, { b: 2 }, { c: 3 } )
  *          // => { a: 1, b: 2, c: 3 }
  */
 function mergeObjs( sources ){
     return _.merge.apply( this, _.flatten( [ {}, arguments || [] ]))
+}
+
+function matches( source ) {
+    return function(obj) {
+        return _.some(_.toPairs(source), function(keyValue) {
+            return obj[keyValue[0]] === keyValue[1];
+        });
+    };
+}
+
+/**
+ * Ensures the item is an instance of the exception specified by type
+ *
+ * @param   {Mixed}     item    Item/Error/Whatever
+ * @param   {Mixed}     type    Exception type (Default: Error)
+ * @return  {Mixed}     Returns an instance of Error, or whatevers specified by item
+ * @example let err = 'Error Str'
+ *          // => Error Str
+ *          err = _.setException( err )
+ *          // => [Error: Error Str]
+ *          err = _.setException( err )
+ *          // => [Error: Error Str]
+ *          // Notice no matter how many times its used, Error is not nested, as opposed to setting new Error( err )
+ */
+function setException( item, type ){
+    if( _.isUndefined( type ) )
+        type = Error
+
+    return item instanceof type ? item : new type( item )
 }
 
 const defaultMixins = {
@@ -1760,6 +1789,7 @@ const defaultMixins = {
     levenshtein: levenshtein,
     includesAll: includesAll,
     passwordHash: passwordHash,
+    setException: setException,
     multiReplace: multiReplace,
     passwordVerify: passwordVerify
 }
