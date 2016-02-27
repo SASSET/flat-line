@@ -1662,6 +1662,76 @@ function setException(item, type) {
     return item instanceof type ? item : new type(item);
 }
 
+/**
+ * Pulls a sample from an array - Useful for when iterating over an array (manually), and having to remove the previous
+ * iterations
+ *
+ * @note    This method mutates the array, just as _.pull does
+ * @param   {array}   arr   Array to sample
+ * @returns {Mixed}         Whatever element was sampled from the array
+ * @example var data = [ 100, 200 ]
+ *          _.pullSample( data )  // 200
+ *          data                    // 100
+ *          _.pullSample( data )  // 100
+ *          data                    // []
+ *          _.pullSample( data )  // []
+ */
+function pullSample(arr) {
+    if (_.isUndefined(arr)) return undefined;
+
+    if (!_.isArray(arr)) throw new Error('Expected to sample an array - received a ' + getTypeof(arr));
+
+    if (_.isEmpty(arr)) return undefined;
+
+    var sample = _.sample(arr);
+
+    _.pull(arr, sample);
+
+    return sample;
+}
+
+/**
+ * Pulls an array of samples from an array - Basically the same thing as _.pullSample, except this samples multiple
+ * elements, with the amount specified by the size parameter
+ *
+ * @note    This method mutates the array, just as _.pull does
+ * @param   {array}   arr   Array to sample
+ * @param   {number}  size  Amount of elements to sample/remove from arr
+ * @returns {array}         Array of one or more elements from arr
+ * @example var data = [ 100, 200, 300, 400 ]
+ *           _.pullSampleSize( data, 2 )  // [ 100, 200 ]
+ *           _.pullSampleSize( data, 2 )  // [ 300, 400 ]
+ *           _.pullSampleSize( data, 2 )  // [ ]
+ *           data                           // []
+ */
+function pullSampleSize(arr, size) {
+    if (size === 0) return [];
+
+    if (_.isUndefined(size)) size = 1;
+
+    if (!_.isNumber(size)) throw new Error('Expected size to be undefined or a number - received a ' + getTypeof(size));
+
+    if (_.isUndefined(arr)) return undefined;
+
+    if (!_.isArray(arr)) throw new Error('Expected to sample an array - received a ' + getTypeof(arr));
+
+    if (_.isEmpty(arr)) return [];
+
+    if (size > _.size(arr)) size = _.size(arr);
+
+    var result = [];
+
+    _.times(size, function () {
+        var sample = _.sample(arr);
+
+        _.pull(arr, sample);
+
+        result.push(sample);
+    });
+
+    return _.flatten(result);
+}
+
 var defaultMixins = {
     md5: md5,
     swap: swap,
@@ -1698,6 +1768,7 @@ var defaultMixins = {
     removeObj: removeObj,
     utf8Encode: utf8Encode,
     utf8Decode: utf8Decode,
+    pullSample: pullSample,
     alternator: alternator,
     mysqlEscape: mysqlEscape,
     isCountable: isCountable,
@@ -1706,7 +1777,8 @@ var defaultMixins = {
     passwordHash: passwordHash,
     setException: setException,
     multiReplace: multiReplace,
-    passwordVerify: passwordVerify
+    passwordVerify: passwordVerify,
+    pullSampleSize: pullSampleSize
 };
 
 // Mixin the above functions into the fresh version of Lodash....
