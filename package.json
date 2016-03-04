@@ -1,6 +1,6 @@
 {
   "name": "moar-lodash",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "description": "Adding some other useful features to Lodash via the Mixins method",
   "main": "index.js",
   "scripts": {

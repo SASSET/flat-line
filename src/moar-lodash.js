@@ -13,10 +13,11 @@
  * @author Justin Hyland (Mostly)
  * @url https://www.npmjs.com/package/moar-lodash
  * @see https://github.com/jhyland87/lodash-mixins
- * @version 2.0.0
+ * @version 2.6.0
  * @todo Split all functions into separate .js files; which can all be loaded by loading the index
  */
 
+const Util = require('util')
 const _ = require('lodash')
 
 // Get a fresh copy of lodash, since implementing mixins in the instance
@@ -645,13 +646,15 @@ function randStr ( length ) {
  * NOTE: If no type is matched, then the toString() value will be returned
  *
  * @param   {*}         value           Value to process
- * @param   {boolean}   scrutinize      Determine if the true value type should be
+ * @param   {boolean}   inspect         Determine if the true value type should be
  *                                      determined through logical processing
  * @param   {object}    returnTypes     Object of return type strings to overwrite
  * @param   {object}    flaggedVals     Values used to determine the real value types
  *                                      of flagged values (Only used if scrutinize is
  *                                      enabled)
- * @returns  {string}    The variable type (string, array, object, boolean, etc)
+ * @returns  {string}    The variable type; The default type names are:
+ *                          undefined, null, string, boolean, array, element, date, regexp, object, number, function, unknown
+ *                       However, these can be overridden by providing an object as the 3rd parameter
  * @example _.typeof( [1,2] )       // array
  *          _.typeof( 'foo' )       // string
  *          _.typeof( true )        // boolean
@@ -661,7 +664,7 @@ function randStr ( length ) {
  *          _.typeof( 'null' )      // string
  *          _.typeof( 'null',true ) // null
  */
-function getTypeof ( value, scrutinize, returnTypes, flaggedVals ) {
+function getTypeof ( value, inspect, returnTypes, flaggedVals ) {
     // String representations of the value types (Overridden by
     // returnTypes if defined)
     const types = _.extend( {
@@ -708,8 +711,8 @@ function getTypeof ( value, scrutinize, returnTypes, flaggedVals ) {
 
     // String values are what get opened to scrutiny, if enabled
     if( _.isString( value ) ){
-        // If scrutinize isnt enabled, then just return string
-        if( !! scrutinize === false )
+        // If inspect isnt enabled, then just return string
+        if( !! inspect === false )
             return types.string
 
         // Numbers should be the same value if leniently compared against it's float-parsed self
@@ -769,7 +772,7 @@ function getTypeof ( value, scrutinize, returnTypes, flaggedVals ) {
     // prototypes toString() call
     // Note: Disabling coverage, since I can't find a value to reach this, and
     // it's just in case I missed something. It helps me sleep at night
-    return getType( value ).toLowerCase()
+    return getType( value )
     /* $lab:coverage:on$ */
 }
 
@@ -1829,6 +1832,78 @@ function pullSampleSize( arr, size ){
     return _.flatten( result )
 }
 
+/**
+ * Validation for legitimate regular expression pattern validation
+ *
+ * @param   {Mixed}             pattern     Pattern to validate (String, number, regexp, etc)
+ * @param   {string}            flags       Regular expression flags (Not required)
+ * @param   {boolean}           reason      If pattern is invalid, instead of returning false, return the error (string),
+ *                                          which would change the return to `true` = valid, and any string = invalid
+ * @returns {boolean|string}   If the pattern will work in a regexp check, then true
+ * @note    This is best used when validating strings, as invalid regexp elements will throw an error before this
+ *          function even gets a chance to validate. Meaning something like `_.validPattern(/a/asdf)` will throw an
+ *          exception on the line the invalid pattern was passed
+ * @todo    Somehow parse a string for a regex pattern and flags; EG: /foo/g -> ['foo','g']; %bar%i -> ['bar','i']
+ */
+function validPattern( pattern, flags, reason ) {
+    const permitted = [
+        // Valid value types that can actually be valid regex patterns
+        'regexp', 'string', 'number',
+        // Empty/null can accidentally be sent, so don't reject them, as all it should do
+        // is save an empty regex value to the config
+        'undefined', 'null'
+    ]
+
+    const ptrnType = getTypeof( pattern )
+
+    if( ! _.includes( permitted, ptrnType ) ){
+        if( reason === true )
+            return `Illegal pattern value type, expecting a 'string', 'number' or RegExp object - received a '${ptrnType}'`
+        else
+            return false
+    }
+
+    // If flags are provided, they must be in string format
+    if( ! _.isUndefined( flags ) && ! _.isNull( flags ) && ! _.isString( flags ) ){
+        if( reason === true )
+            return `Illegal flag value type, expecting type 'string' or nothing - received a '${getTypeof( flags )}'`
+        else
+            return false
+    }
+
+    // null/undefined
+    if( _.isEmpty( pattern ) )
+        return true
+
+    // Use this instead of just `arguments`, because we dont want the `reason` to be passed down
+    const regexpParams = [ pattern ]
+
+    if( _.isString( flags ) )
+        regexpParams.push( flags )
+
+    let isValid = true
+    let err
+
+    try {
+        RegExp.apply( RegExp, regexpParams )
+    } catch(e) {
+        err = e
+        isValid = false
+    }
+
+    // If its valid, then return true and go no further!
+    if( isValid === true )
+        return true
+
+    // If there needs to be a reason, then return one if there is one
+    if( reason === true )
+        return err
+            ? err.toString()
+            : 'Invalid RegExp pattern - Unknown reason'
+
+    return false
+}
+
 const defaultMixins = {
     md5: md5,
     swap: swap,
@@ -1871,6 +1946,7 @@ const defaultMixins = {
     isCountable: isCountable,
     levenshtein: levenshtein,
     includesAll: includesAll,
+    validPattern: validPattern,
     passwordHash: passwordHash,
     setException: setException,
     multiReplace: multiReplace,
