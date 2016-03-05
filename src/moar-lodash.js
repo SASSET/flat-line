@@ -13,7 +13,7 @@
  * @author Justin Hyland (Mostly)
  * @url https://www.npmjs.com/package/moar-lodash
  * @see https://github.com/jhyland87/lodash-mixins
- * @version 2.6.0
+ * @version 2.6.1
  * @todo Split all functions into separate .js files; which can all be loaded by loading the index
  */
 
@@ -626,7 +626,7 @@ function randStr ( length ) {
         //'`~!@#$%^&*()-_=+[{]}\\|\'";:/?.>,<'
     ].join('')
 
-    for( let i=0; i < parseInt( length ); i++ )
+    for( let i=0; i < Number( length ); i++ )
         result += possible.charAt(Math.floor(Math.random() * possible.length))
 
     return result
@@ -1566,7 +1566,7 @@ function includesAll ( collection, values, fromIndex ) {
         throw new Error( '_.includesAll: Need a value to check for' )
 
     // Default this to 0
-    fromIndex = _.isNumber( fromIndex ) ? parseInt( fromIndex ) : 0
+    fromIndex = _.isNumber( fromIndex ) ? Number( fromIndex ) : 0
 
     // If were given an array, then iterate through the collection
     if( _.isArray( values ) )
@@ -1587,7 +1587,7 @@ function includesAll ( collection, values, fromIndex ) {
  * @returns  {number}    Maximum value, retrieved by _.max()
  */
 function maxOf() {
-    return _.max( _.chain( arguments ).map(n => parseInt( n ) ).value() )
+    return _.max( _.chain( arguments ).map(n => Number( n ) ).value() )
 }
 
 /**
@@ -1599,7 +1599,7 @@ function maxOf() {
  * @returns  {number}    Minimum value, retrieved by _.min()
  */
 function minOf() {
-    return _.min( _.chain( arguments ).map(n => parseInt( n ) ).value() )
+    return _.min( _.chain( arguments ).map(n => Number( n ) ).value() )
 }
 
 /**
