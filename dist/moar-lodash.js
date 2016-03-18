@@ -13,11 +13,11 @@
  * @author Justin Hyland (Mostly)
  * @url https://www.npmjs.com/package/moar-lodash
  * @see https://github.com/jhyland87/lodash-mixins
- * @version 2.6.0
+ * @version 2.6.1
  * @todo Split all functions into separate .js files; which can all be loaded by loading the index
  */
 
-function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 var Util = require('util');
 var _ = require('lodash');
@@ -344,8 +344,8 @@ function utf8Encode(str) {
     var string = str + ''; // .replace(/\r\n/g, "\n").replace(/\r/g, "\n");
     var utftext = '',
         stringl = 0,
-        start = undefined,
-        end = undefined;
+        start = void 0,
+        end = void 0;
 
     start = end = 0;
     stringl = _.size(string);
@@ -466,8 +466,8 @@ function sha1(str) {
 
     var cvt_hex = function cvt_hex(val) {
         var str = '';
-        var i = undefined;
-        var v = undefined;
+        var i = void 0;
+        var v = void 0;
 
         for (i = 7; i >= 0; i--) {
             str += (val >>> i * 4 & 0x0f).toString(16);
@@ -475,21 +475,21 @@ function sha1(str) {
         return str;
     };
 
-    var blockstart = undefined;
-    var i = undefined,
-        j = undefined;
+    var blockstart = void 0;
+    var i = void 0,
+        j = void 0;
     var W = new Array(80);
     var H0 = 0x67452301;
     var H1 = 0xEFCDAB89;
     var H2 = 0x98BADCFE;
     var H3 = 0x10325476;
     var H4 = 0xC3D2E1F0;
-    var A = undefined,
-        B = undefined,
-        C = undefined,
-        D = undefined,
-        E = undefined;
-    var temp = undefined;
+    var A = void 0,
+        B = void 0,
+        C = void 0,
+        D = void 0,
+        E = void 0;
+    var temp = void 0;
 
     str = utf8Encode(str);
     var str_len = _.size(str);
@@ -625,7 +625,7 @@ function randStr(length) {
     //'`~!@#$%^&*()-_=+[{]}\\|\'";:/?.>,<'
     ].join('');
 
-    for (var i = 0; i < parseInt(length); i++) {
+    for (var i = 0; i < Number(length); i++) {
         result += possible.charAt(Math.floor(Math.random() * possible.length));
     }return result;
 }
@@ -663,8 +663,7 @@ function randStr(length) {
  *          _.typeof( 'null',true ) // null
  */
 function getTypeof(value, inspect, returnTypes, flaggedVals) {
-    // String representations of the value types (Overridden by
-    // returnTypes if defined)
+    // String representations of the value types (Overridden by returnTypes if defined)
     var types = _.extend({
         undefined: 'undefined',
         null: 'null',
@@ -680,8 +679,8 @@ function getTypeof(value, inspect, returnTypes, flaggedVals) {
         unknown: 'unknown'
     }, returnTypes || {});
 
-    // Flagged values for string variables; EG: if string is 'true',
-    // then the it's Boolean (Overridden by flaggedVals if defined)
+    // Flagged values for string variables; EG: if string is 'true', then the it's Boolean (Overridden by
+    // flaggedVals if defined)
     var flagged = _.extend({
         boolean: ['true', 'false'],
         null: ['null', 'NULL'],
@@ -695,8 +694,7 @@ function getTypeof(value, inspect, returnTypes, flaggedVals) {
     //const objTypeRegex = objType.match( /^\[object\s(.*)\]$/ )
 
     /* $lab:coverage:off$ */
-    // Match the type, or use the types.undefined (This shouldn't ever not
-    // match)
+    // Match the type, or use the types.undefined (This shouldn't ever not match)
     //const objTypeString = objTypeRegex[1] ? objTypeRegex[1].toLowerCase() : types.unknown
     /* $lab:coverage:on$ */
 
@@ -710,7 +708,7 @@ function getTypeof(value, inspect, returnTypes, flaggedVals) {
         if (!!inspect === false) return types.string;
 
         // Numbers should be the same value if leniently compared against it's float-parsed self
-        if (parseFloat(value) == value) return types.number;
+        if (Number(value) == value) return types.number;
 
         // Check if this string is inside the boolean flags
         if (_.indexOf(flagged.boolean, value) !== -1) return types.boolean;
@@ -725,8 +723,8 @@ function getTypeof(value, inspect, returnTypes, flaggedVals) {
         return types.string;
     }
 
-    // Certain check types can't be misconstrued as other types, unlike other
-    // types (such as objects), get those out of the way
+    // Certain check types can't be misconstrued as other types, unlike other types (such as objects), get those out
+    // of the way
     if (_.isBoolean(value)) return types.boolean;
 
     if (_.isNumber(value)) return types.number;
@@ -750,10 +748,9 @@ function getTypeof(value, inspect, returnTypes, flaggedVals) {
     if (_.isObject(value)) return types.object;
 
     /* $lab:coverage:off$ */
-    // If nothing else was caught, then return the type found via the
-    // prototypes toString() call
-    // Note: Disabling coverage, since I can't find a value to reach this, and
-    // it's just in case I missed something. It helps me sleep at night
+    // If nothing else was caught, then return the type found via the prototypes toString() call
+    // Note: Disabling coverage, since I can't find a value to reach this, and it's just in case I missed something.
+    // It helps me sleep at night
     return getType(value);
     /* $lab:coverage:on$ */
 }
@@ -931,7 +928,7 @@ function uniqObjs(arr) {
 /**
  * Check if the provided number is a float or integer value. This just tacks
  * a 2nd check onto lodashes isNumber, which uses a lenient comparative operator
- * to check if the value of parseFloat is the same as the provided number
+ * to check if the value of Number is the same as the provided number
  *
  * @param   {string|integer|number}  num     Number to check
  * @returns  {boolean}
@@ -946,7 +943,7 @@ function uniqObjs(arr) {
  *
  */
 function isNumeric(num) {
-    return _.isNumber(num) || parseFloat(num) == num;
+    return _.isNumber(num) || Number(num) == num;
 }
 
 /**
@@ -1046,6 +1043,19 @@ function endWith(str, end) {
 }
 
 /**
+ * Ensure a specific string DOESN'T end with a certain character
+ *
+ * @todo Should be able to replace an ending str like // with /
+ * @param   {string}    str     String to parse and modify (if needed)
+ * @param   {string}    end     String to check for on the ending, and possibly remove
+ * @example _.dontEndWith('/v1/resource/name/', '/')
+ *              // => /v1/resource/name
+ */
+function dontEndWith(str, end) {
+    return _.endsWith(str, end) ? str.replace(new RegExp(end + '$'), '') : str;
+}
+
+/**
  * Ensure a specific string starts with a certain character
  *
  * @param   {string}    str     String to parse and modify (if needed)
@@ -1062,6 +1072,19 @@ function endWith(str, end) {
  */
 function startWith(str, start) {
     return _.startsWith(str, start) ? str : start + str;
+}
+
+/**
+ * Ensure a specific string DOESN'T start with a certain character
+ *
+ * @todo Should be able to replace an starting str like // with /
+ * @param   {string}    str     String to parse and modify (if needed)
+ * @param   {string}    start   String to check for on the beginning, and possibly remove
+ * @example _.dontStartWith('.unhide-me', '.')
+ *              // => unhide-me
+ */
+function dontStartWith(str, start) {
+    return _.startsWith(str, start) ? str.replace(new RegExp('^' + start), '') : str;
 }
 
 /**
@@ -1487,7 +1510,7 @@ function includesAll(collection, values, fromIndex) {
     if (_.isUndefined(values) || _.isNull(values)) throw new Error('_.includesAll: Need a value to check for');
 
     // Default this to 0
-    fromIndex = _.isNumber(fromIndex) ? parseInt(fromIndex) : 0;
+    fromIndex = _.isNumber(fromIndex) ? Number(fromIndex) : 0;
 
     // If were given an array, then iterate through the collection
     if (_.isArray(values)) return _.every(values, function (v) {
@@ -1510,7 +1533,7 @@ function includesAll(collection, values, fromIndex) {
  */
 function maxOf() {
     return _.max(_.chain(arguments).map(function (n) {
-        return parseInt(n);
+        return Number(n);
     }).value());
 }
 
@@ -1524,7 +1547,7 @@ function maxOf() {
  */
 function minOf() {
     return _.min(_.chain(arguments).map(function (n) {
-        return parseInt(n);
+        return Number(n);
     }).value());
 }
 
@@ -1549,8 +1572,8 @@ function levenshtein(strA, strB) {
     var cost = [];
     var n = strA.length;
     var m = strB.length;
-    var i = undefined;
-    var j = undefined;
+    var i = void 0;
+    var j = void 0;
 
     if (n === 0 || m === 0) return;
 
@@ -1593,7 +1616,7 @@ function strDist(strA, strB) {
 
     if (distance === false) return false;
 
-    return parseFloat(distance * 100 / maxOf(strA.length, strB.length));
+    return Number(distance * 100 / maxOf(strA.length, strB.length));
 }
 
 function isCountable(noun) {
@@ -1776,7 +1799,7 @@ function validPattern(pattern, flags, reason) {
     if (_.isString(flags)) regexpParams.push(flags);
 
     var isValid = true;
-    var err = undefined;
+    var err = void 0;
 
     try {
         RegExp.apply(RegExp, regexpParams);
@@ -1834,12 +1857,14 @@ var defaultMixins = {
     alternator: alternator,
     mysqlEscape: mysqlEscape,
     isCountable: isCountable,
+    dontEndWith: dontEndWith,
     levenshtein: levenshtein,
     includesAll: includesAll,
     validPattern: validPattern,
     passwordHash: passwordHash,
     setException: setException,
     multiReplace: multiReplace,
+    dontStartWith: dontStartWith,
     passwordVerify: passwordVerify,
     pullSampleSize: pullSampleSize
 };

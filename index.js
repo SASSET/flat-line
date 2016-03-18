@@ -1,1 +1,4 @@
-module.exports = require('./src/moar-lodash');
+module.exports = require(
+    //'./src/moar-lodash'
+    './dist/moar-lodash'
+)

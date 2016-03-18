@@ -665,8 +665,7 @@ function randStr ( length ) {
  *          _.typeof( 'null',true ) // null
  */
 function getTypeof ( value, inspect, returnTypes, flaggedVals ) {
-    // String representations of the value types (Overridden by
-    // returnTypes if defined)
+    // String representations of the value types (Overridden by returnTypes if defined)
     const types = _.extend( {
         undefined:  'undefined',
         null:       'null',
@@ -682,8 +681,8 @@ function getTypeof ( value, inspect, returnTypes, flaggedVals ) {
         unknown:    'unknown'
     }, returnTypes || {} )
 
-    // Flagged values for string variables; EG: if string is 'true',
-    // then the it's Boolean (Overridden by flaggedVals if defined)
+    // Flagged values for string variables; EG: if string is 'true', then the it's Boolean (Overridden by
+    // flaggedVals if defined)
     const flagged = _.extend( {
         boolean:    [ 'true', 'false' ],
         null:       [ 'null', 'NULL' ],
@@ -698,8 +697,7 @@ function getTypeof ( value, inspect, returnTypes, flaggedVals ) {
     //const objTypeRegex = objType.match( /^\[object\s(.*)\]$/ )
 
     /* $lab:coverage:off$ */
-    // Match the type, or use the types.undefined (This shouldn't ever not
-    // match)
+    // Match the type, or use the types.undefined (This shouldn't ever not match)
     //const objTypeString = objTypeRegex[1] ? objTypeRegex[1].toLowerCase() : types.unknown
     /* $lab:coverage:on$ */
 
@@ -716,7 +714,7 @@ function getTypeof ( value, inspect, returnTypes, flaggedVals ) {
             return types.string
 
         // Numbers should be the same value if leniently compared against it's float-parsed self
-        if( parseFloat( value ) == value )
+        if( Number( value ) == value )
             return types.number
 
         // Check if this string is inside the boolean flags
@@ -735,8 +733,8 @@ function getTypeof ( value, inspect, returnTypes, flaggedVals ) {
         return types.string
     }
 
-    // Certain check types can't be misconstrued as other types, unlike other
-    // types (such as objects), get those out of the way
+    // Certain check types can't be misconstrued as other types, unlike other types (such as objects), get those out
+    // of the way
     if( _.isBoolean( value ) )
         return types.boolean
 
@@ -768,10 +766,9 @@ function getTypeof ( value, inspect, returnTypes, flaggedVals ) {
         return types.object
 
     /* $lab:coverage:off$ */
-    // If nothing else was caught, then return the type found via the
-    // prototypes toString() call
-    // Note: Disabling coverage, since I can't find a value to reach this, and
-    // it's just in case I missed something. It helps me sleep at night
+    // If nothing else was caught, then return the type found via the prototypes toString() call
+    // Note: Disabling coverage, since I can't find a value to reach this, and it's just in case I missed something.
+    // It helps me sleep at night
     return getType( value )
     /* $lab:coverage:on$ */
 }
@@ -960,7 +957,7 @@ function uniqObjs ( arr ) {
 /**
  * Check if the provided number is a float or integer value. This just tacks
  * a 2nd check onto lodashes isNumber, which uses a lenient comparative operator
- * to check if the value of parseFloat is the same as the provided number
+ * to check if the value of Number is the same as the provided number
  *
  * @param   {string|integer|number}  num     Number to check
  * @returns  {boolean}
@@ -975,7 +972,7 @@ function uniqObjs ( arr ) {
  *
  */
 function isNumeric ( num ) {
-    return _.isNumber( num ) || parseFloat( num ) == num
+    return _.isNumber( num ) || Number( num ) == num
 }
 
 /**
@@ -1087,6 +1084,21 @@ function endWith ( str, end ) {
 }
 
 /**
+ * Ensure a specific string DOESN'T end with a certain character
+ *
+ * @todo Should be able to replace an ending str like // with /
+ * @param   {string}    str     String to parse and modify (if needed)
+ * @param   {string}    end     String to check for on the ending, and possibly remove
+ * @example _.dontEndWith('/v1/resource/name/', '/')
+ *              // => /v1/resource/name
+ */
+function dontEndWith ( str, end ) {
+    return _.endsWith( str, end )
+        ? str.replace( new RegExp( end+'$'), '')
+        : str
+}
+
+/**
  * Ensure a specific string starts with a certain character
  *
  * @param   {string}    str     String to parse and modify (if needed)
@@ -1105,6 +1117,21 @@ function startWith ( str, start ) {
     return _.startsWith( str, start )
         ? str
         : start + str
+}
+
+/**
+ * Ensure a specific string DOESN'T start with a certain character
+ *
+ * @todo Should be able to replace an starting str like // with /
+ * @param   {string}    str     String to parse and modify (if needed)
+ * @param   {string}    start   String to check for on the beginning, and possibly remove
+ * @example _.dontStartWith('.unhide-me', '.')
+ *              // => unhide-me
+ */
+function dontStartWith ( str, start ) {
+    return _.startsWith( str, start )
+        ? str.replace( new RegExp( '^'+start ), '')
+        : str
 }
 
 /**
@@ -1673,7 +1700,7 @@ function strDist( strA, strB ) {
 
     if( distance === false ) return false
 
-    return parseFloat( (distance * 100) / maxOf( strA.length, strB.length ))
+    return Number( (distance * 100) / maxOf( strA.length, strB.length ))
 }
 
 function isCountable( noun ){
@@ -1944,12 +1971,14 @@ const defaultMixins = {
     alternator: alternator,
     mysqlEscape: mysqlEscape,
     isCountable: isCountable,
+    dontEndWith: dontEndWith,
     levenshtein: levenshtein,
     includesAll: includesAll,
     validPattern: validPattern,
     passwordHash: passwordHash,
     setException: setException,
     multiReplace: multiReplace,
+    dontStartWith: dontStartWith,
     passwordVerify: passwordVerify,
     pullSampleSize: pullSampleSize
 }
