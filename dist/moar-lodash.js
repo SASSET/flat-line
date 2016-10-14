@@ -17,9 +17,13 @@
  * @todo Split all functions into separate .js files; which can all be loaded by loading the index
  */
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var Util = require('util');
+
+/**
+ * @module _
+ */
 var _ = require('lodash');
 
 // Get a fresh copy of lodash, since implementing mixins in the instance
@@ -49,6 +53,122 @@ var _internals = {
 };
 
 /**
+ * Encodes an ISO-8859-1 string to UTF-8, this is meant to provide the same functionality
+ * as the PHP utf8_encode function.
+ *
+ * @name        module:_.utf8Encode
+ * @function    module:_.utf8Encode
+ * @memberof    module:_
+ * @param       {string}    str     Standard ISO-8859-1 encoded string
+ * @returns     {string}    UTF-8 encoded version of the str param value
+ * @example _.utf8Encode('Hello World')
+ *              // => Hello World
+ */
+function utf8Encode(str) {
+    if (_.isNull(str) || _.isUndefined(str) || str === '') return str;
+
+    if (!_.isString(str) && !_.isNumber(str)) throw new Error('Illegal value type given to utf8Encode, expected a ISO-8859-1 encoded string, but received a ' + (typeof str === 'undefined' ? 'undefined' : _typeof(str)));
+
+    var string = str + ''; // .replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    var utftext = '',
+        stringl = 0,
+        start = void 0,
+        end = void 0;
+
+    start = end = 0;
+    stringl = _.size(string);
+    for (var n = 0; n < stringl; n++) {
+        var c1 = string.charCodeAt(n);
+        var enc = null;
+
+        if (c1 < 128) {
+            end++;
+        } else if (c1 > 127 && c1 < 2048) {
+            enc = String.fromCharCode(c1 >> 6 | 192, c1 & 63 | 128);
+        } else if ((c1 & 0xF800) != 0xD800) {
+            enc = String.fromCharCode(c1 >> 12 | 224, c1 >> 6 & 63 | 128, c1 & 63 | 128);
+        } else {
+            // surrogate pairs
+            if ((c1 & 0xFC00) != 0xD800) throw new RangeError('Unmatched trail surrogate at ' + n);
+
+            var c2 = string.charCodeAt(++n);
+            if ((c2 & 0xFC00) != 0xDC00) throw new RangeError('Unmatched lead surrogate at ' + (n - 1));
+
+            c1 = ((c1 & 0x3FF) << 10) + (c2 & 0x3FF) + 0x10000;
+            enc = String.fromCharCode(c1 >> 18 | 240, c1 >> 12 & 63 | 128, c1 >> 6 & 63 | 128, c1 & 63 | 128);
+        }
+        if (!_.isNull(enc)) {
+            if (end > start) utftext += string.slice(start, end);
+
+            utftext += enc;
+            start = end = n + 1;
+        }
+    }
+
+    if (end > start) utftext += string.slice(start, stringl);
+
+    return utftext;
+}
+
+/**
+ * Decodes a UTF-8 encoded string to the standard ISO-8859-1, this is meant to provide the same functionality
+ * as the PHP utf8_decode function.
+ *
+ * @name        module:_.utf8Decode
+ * @function    module:_.utf8Decode
+ * @memberof    module:_
+ * @param       {string}    str     UTF-8 encoded string
+ * @returns     {string}   ISO-8859-1 decoded string
+ * @example _.utf8Decode('Hello World')
+ *              // => Hello World
+ */
+function utf8Decode(str) {
+    if (_.isNull(str) || _.isUndefined(str) || str === '') return str;
+
+    //if( ! _.isString( str ) && ! _.isNumber( str ))
+    //throw new Error( `Illegal value type given to utf8Decode, expected a UTF-8 encoded string, but received a ${typeof str}` )
+
+    var tmp_arr = [],
+        i = 0,
+        ac = 0,
+        c1 = 0,
+        c2 = 0,
+        c3 = 0,
+        c4 = 0;
+
+    str += '';
+
+    while (i < _.size(str)) {
+        c1 = str.charCodeAt(i);
+        if (c1 <= 191) {
+            tmp_arr[ac++] = String.fromCharCode(c1);
+            i++;
+        } else if (c1 <= 223) {
+            c2 = str.charCodeAt(i + 1);
+            tmp_arr[ac++] = String.fromCharCode((c1 & 31) << 6 | c2 & 63);
+            i += 2;
+        } else if (c1 <= 239) {
+            // http://en.wikipedia.org/wiki/UTF-8#Codepage_layout
+            c2 = str.charCodeAt(i + 1);
+            c3 = str.charCodeAt(i + 2);
+            tmp_arr[ac++] = String.fromCharCode((c1 & 15) << 12 | (c2 & 63) << 6 | c3 & 63);
+            i += 3;
+        } else {
+            c2 = str.charCodeAt(i + 1);
+            c3 = str.charCodeAt(i + 2);
+            c4 = str.charCodeAt(i + 3);
+            c1 = (c1 & 7) << 18 | (c2 & 63) << 12 | (c3 & 63) << 6 | c4 & 63;
+            c1 -= 0x10000;
+            tmp_arr[ac++] = String.fromCharCode(0xD800 | c1 >> 10 & 0x3FF);
+            tmp_arr[ac++] = String.fromCharCode(0xDC00 | c1 & 0x3FF);
+            i += 4;
+        }
+    }
+
+    return tmp_arr.join('');
+}
+
+/**
  * Alternate through the parameters provided, returning the next one in line every time.
  *
  * Instructions:
@@ -57,8 +177,11 @@ var _internals = {
  *          the first new parameter listed
  *      - Calling alternator() with NO parameters will reset the rotation to null, and return nothing
  *
- * @var      {array}     parameters  Parameters to rotate through
- * @returns  {Mixed}     Whatever array element is next in line, or nothing when resetting
+ * @name        module:_.alternator
+ * @function    module:_.alternator
+ * @memberof    module:_
+ * @var         {array}     parameters  Parameters to rotate through
+ * @returns     {Mixed}     Whatever array element is next in line, or nothing when resetting
  * @todo    Create unit tests
  * @example
  * for(i = 0; i< 6; i++)
@@ -75,21 +198,20 @@ function alternator() {
 
     // If this is the first time passing params, OR the params md5sum has changed
     // (meaning new params), then reset the alternator with the new params
-    else if (_internals.alternator.params === null || md5(JSON.stringify(arguments)) !== _internals.alternator.params) {
-            //console.log('# B')
-            _internals.alternator.i = 0;
-            _internals.alternator.params = md5(JSON.stringify(arguments));
+    if (_internals.alternator.params === null || md5(JSON.stringify(arguments)) !== _internals.alternator.params) {
+        //console.log('# B')
+        _internals.alternator.i = 0;
+        _internals.alternator.params = md5(JSON.stringify(arguments));
 
-            return arguments[_internals.alternator.i++];
-        }
+        return arguments[_internals.alternator.i++];
+    }
 
-        // Just calling alternator again with the same params as last time..
-        else {
-                //console.log('# C - ', _internals.alternator.params)
-                if (_internals.alternator.i === arguments.length) _internals.alternator.i = 0;
+    // Just calling alternator again with the same params as last time..
+    if (_internals.alternator.i === arguments.length) {
+        _internals.alternator.i = 0;
+    }
 
-                return arguments[_internals.alternator.i++];
-            }
+    return arguments[_internals.alternator.i++];
 }
 
 /**
@@ -97,6 +219,9 @@ function alternator() {
  *
  * This source was taken from the PHP.js project, I take no credit for this code
  *
+ * @name        module:_.md5
+ * @function    module:_.md5
+ * @memberof    module:_
  * @author Not me (Justin Hyland)
  * @see http://phpjs.org/functions/md5/
  * @param   {string}    str     String to hash
@@ -328,123 +453,219 @@ function md5(str) {
 }
 
 /**
- * Encodes an ISO-8859-1 string to UTF-8, this is meant to provide the same functionality
- * as the PHP utf8_encode function.
+ * Iterate through an array of absolute file paths, removing the common paths from each element. This is useful
+ * for when you don't need to have the entire absolute path in the name.
  *
- * @param   {string}    str     Standard ISO-8859-1 encoded string
- * @returns  UTF-8 encoded version of the str param value
- * @example _.utf8Encode('Hello World')
- *              // => Hello World
+ * @function    module:_.stripCommonRoot
+ * @name        module:_.stripCommonRoot
+ * @memberof    module:_
+ * @param       {array}     pathArray   Array of paths..
+ * @returns     {array}                 Modified version of the provided array
+ *
+ * @example  
+ *  Gizmo.stripCommonRoot([ 
+ *      '/home/jdoe/app/lib/helpers/mongoose-helper.js',
+ *      '/home/jdoe/app/dev/file-foo.js',
+ *      '/home/jdoe/app/dev/some-file.js' 
+ * ]).join(', ')
+ * // => /lib/helpers/mongoose-helper.js, /dev/file-foo.js, /dev/some-file.js
  */
-function utf8Encode(str) {
-    if (_.isNull(str) || _.isUndefined(str) || str === '') return str;
+function stripCommonRoot(pathArray) {
+    if (!_.isArray(pathArray)) {
+        Log.debug('Expected an array - received ' + _.typeof(pathArray));
 
-    if (!_.isString(str) && !_.isNumber(str)) throw new Error('Illegal value type given to utf8Encode, expected a ISO-8859-1 encoded string, but received a ' + (typeof str === 'undefined' ? 'undefined' : _typeof(str)));
-
-    var string = str + ''; // .replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-    var utftext = '',
-        stringl = 0,
-        start = void 0,
-        end = void 0;
-
-    start = end = 0;
-    stringl = _.size(string);
-    for (var n = 0; n < stringl; n++) {
-        var c1 = string.charCodeAt(n);
-        var enc = null;
-
-        if (c1 < 128) {
-            end++;
-        } else if (c1 > 127 && c1 < 2048) {
-            enc = String.fromCharCode(c1 >> 6 | 192, c1 & 63 | 128);
-        } else if ((c1 & 0xF800) != 0xD800) {
-            enc = String.fromCharCode(c1 >> 12 | 224, c1 >> 6 & 63 | 128, c1 & 63 | 128);
-        } else {
-            // surrogate pairs
-            if ((c1 & 0xFC00) != 0xD800) throw new RangeError('Unmatched trail surrogate at ' + n);
-
-            var c2 = string.charCodeAt(++n);
-            if ((c2 & 0xFC00) != 0xDC00) throw new RangeError('Unmatched lead surrogate at ' + (n - 1));
-
-            c1 = ((c1 & 0x3FF) << 10) + (c2 & 0x3FF) + 0x10000;
-            enc = String.fromCharCode(c1 >> 18 | 240, c1 >> 12 & 63 | 128, c1 >> 6 & 63 | 128, c1 & 63 | 128);
-        }
-        if (!_.isNull(enc)) {
-            if (end > start) utftext += string.slice(start, end);
-
-            utftext += enc;
-            start = end = n + 1;
-        }
+        return false;
     }
 
-    if (end > start) utftext += string.slice(start, stringl);
+    if (!_.size(pathArray)) {
+        return [];
+    }
 
-    return utftext;
+    if (!_.every(pathArray, _.isString)) {
+        Log.debug('Expected an array of strings - received ' + _.typeof(pathArray));
+
+        return false;
+    }
+
+    var pathsSplit = _.map(pathArray, function (p) {
+        return _.split(p, '/');
+    });
+    var currentVal = null;
+    var result = null;
+
+    var isFirstSame = function isFirstSame(p) {
+        if (currentVal === null) {
+            currentVal = p[0];
+            return true;
+        }
+        return p[0] == currentVal;
+    };
+
+    // Iterate over the segments of the path, checking if all of the values for this segment in every path is the same.
+    do {
+        if (_.every(pathsSplit, isFirstSame)) {
+            pathsSplit = _.map(pathsSplit, function (p) {
+                return _.drop(p);
+            });
+            currentVal = null;
+        }
+
+        // When we reach a segment thats not the same in every path, then set the `result` variable, which will abort 
+        // the do/while loop
+        else {
+                result = _.map(pathsSplit, function (p) {
+                    return '/' + _.join(p, '/');
+                });
+            }
+    } while (result === null);
+
+    return result;
 }
 
 /**
- * Decodes a UTF-8 encoded string to the standard ISO-8859-1, this is meant to provide the same functionality
- * as the PHP utf8_decode function.
+ * Iterate through an array of absolute file paths, removing the common paths from each absolute path. The shortened 
+ * filenames are returned in an array, while the common path 
  *
- * @param   {string}    str     UTF-8 encoded string
- * @returns  ISO-8859-1 decoded string
- * @example _.utf8Decode('Hello World')
- *              // => Hello World
+ * @function    module:_.sumPaths
+ * @alias       module:_.summarizePaths
+ * @memberof    module:_
+ * @param       {array}     pathArray       Array of paths..
+ * @returns     {Object}    pathObj         Object containing the common absolute path, and an array of files (with 
+ *                                          paths relative to the common absolute path)
+ * @returns     {string}    pathObj.path    The absolute path up to the last common folder that all files share
+ * @returns     {array}     pathObj.files   Array of filenames, paths starting where {pathObj.path} left off
+ *
+ * @example  
+ *  _.sumPaths.summarizePaths([ 
+ *      '/home/jdoe/app/lib/helpers/mongoose-helper.js',
+ *      '/home/jdoe/app/dev/file-foo.js',
+ *      '/home/jdoe/app/dev/some-file.js' 
+ * ])
+ * // => { path: '/home/jdoe/app',
+ *          files: [ 
+ *              '/lib/helpers/mongoose-helper.js', '/dev/file-foo.js', '/dev/some-file.js' 
+ *          ] 
+ *      }
  */
-function utf8Decode(str) {
-    if (_.isNull(str) || _.isUndefined(str) || str === '') return str;
+function sumPaths(pathArray) {
+    if (!_.isArray(pathArray)) {
+        Log.debug('Expected an array - received ' + _.typeof(pathArray));
 
-    //if( ! _.isString( str ) && ! _.isNumber( str ))
-    //throw new Error( `Illegal value type given to utf8Decode, expected a UTF-8 encoded string, but received a ${typeof str}` )
-
-    var tmp_arr = [],
-        i = 0,
-        ac = 0,
-        c1 = 0,
-        c2 = 0,
-        c3 = 0,
-        c4 = 0;
-
-    str += '';
-
-    while (i < _.size(str)) {
-        c1 = str.charCodeAt(i);
-        if (c1 <= 191) {
-            tmp_arr[ac++] = String.fromCharCode(c1);
-            i++;
-        } else if (c1 <= 223) {
-            c2 = str.charCodeAt(i + 1);
-            tmp_arr[ac++] = String.fromCharCode((c1 & 31) << 6 | c2 & 63);
-            i += 2;
-        } else if (c1 <= 239) {
-            // http://en.wikipedia.org/wiki/UTF-8#Codepage_layout
-            c2 = str.charCodeAt(i + 1);
-            c3 = str.charCodeAt(i + 2);
-            tmp_arr[ac++] = String.fromCharCode((c1 & 15) << 12 | (c2 & 63) << 6 | c3 & 63);
-            i += 3;
-        } else {
-            c2 = str.charCodeAt(i + 1);
-            c3 = str.charCodeAt(i + 2);
-            c4 = str.charCodeAt(i + 3);
-            c1 = (c1 & 7) << 18 | (c2 & 63) << 12 | (c3 & 63) << 6 | c4 & 63;
-            c1 -= 0x10000;
-            tmp_arr[ac++] = String.fromCharCode(0xD800 | c1 >> 10 & 0x3FF);
-            tmp_arr[ac++] = String.fromCharCode(0xDC00 | c1 & 0x3FF);
-            i += 4;
-        }
+        return false;
     }
 
-    return tmp_arr.join('');
+    if (!_.size(pathArray)) {
+        return [];
+    }
+
+    if (!_.every(pathArray, _.isString)) {
+        Log.debug('Expected an array of strings - received ' + _.typeof(pathArray));
+
+        return false;
+    }
+
+    var pathsSplit = _.map(pathArray, function (p) {
+        return _.split(p, '/');
+    });
+    var currentVal = null;
+    var result = null;
+    var commonRoot = [];
+
+    var isFirstSame = function isFirstSame(p) {
+        // If the 'currentVal' is null, then this is the first iteration, so set it to this
+        // value, which will be compared with all the others
+        if (currentVal === null) {
+            currentVal = p[0];
+            return true;
+        }
+
+        // Not the first iteration, compare it to the value
+        return p[0] == currentVal;
+    };
+
+    // Iterate over the segments of the path, checking if all of the values for this segment in every path is the same.
+    do {
+        // Check if the [0] element in each array is the same..
+        if (_.every(pathsSplit, isFirstSame)) {
+            // .. If they are all the same, then drop the first item from each path,
+            pathsSplit = _.map(pathsSplit, _.drop);
+            // Add the path segment to the common root array/path
+            commonRoot.push(currentVal);
+            // Reset the currentVal
+            currentVal = null;
+        }
+
+        // When we reach a segment thats not the same in every path, then set the `result` variable, which will abort 
+        // the do/while loop
+        else {
+                result = _.map(pathsSplit, function (p) {
+                    return '/' + _.join(p, '/');
+                });
+            }
+    } while (result === null);
+
+    return {
+        path: commonRoot.join('/'),
+        files: result
+    };
+}
+
+/**
+ * Retrieve the types of values in an array or an object. 
+ *
+ * @name        module:_.valTypes
+ * @alias       module:_.valueTypes
+ * @function    module:_.valTypes
+ * @memberof    module:_
+ * @param       {(Object|array)}    collection  Array or object (collection of data).
+ * @param       {?function=}         filter      Filter the collection using a simple function
+ * @returns     {array}                         Array of types of values in the collection
+ *
+ * @example // Example showing how duplicate value types only display the value type once
+ *  _.valTypes([ 
+ *      1, 'Str', false, [], null, new Array(), undefined, {}, 
+ *      new Date(), function(){}, (s => `This is a ${s}`)('str')
+ *  ]).join(', ').join(', ')
+ *  // => number, string, boolean, array, null, undefined, object, date, function
+ *
+ * @example // Using Gizmo.valueTypes to verify all parameters are string types
+ *  function onlyAcceptsStringParams( foo, bar, baz, bang ){
+ *      var invalidParamTypes = Gizmo.valTypes( arguments, f => ! _.isString(f) )
+ *      if( invalidParamTypes.length > 0 ) 
+ *          throw new Error( 'Expected ll parameters to be strings - received invalid type(s): ' + invalidParamTypes.join(', ') ) 
+ *  }
+ */
+function valTypes(collection, filter) {
+
+    if (_.isObject(collection)) {
+        collection = _.values(collection);
+    } else if (!_.isArray(collection)) {
+        throw new Error('Helper function valTypes expected an object or array for the collection value - received type: ' + _.type(collection));
+    }
+
+    var chain = _.chain(collection);
+
+    if (_.isFunction(filter)) {
+        chain = chain.filter(filter);
+    }
+
+    return chain
+    //.map( v => _.lowerCase( _.typeof( v ) ) )
+    .map(_.typeof).map(_.lowerCase).uniq().value();
 }
 
 /**
  * Calculate the sha1 hash of a specific string. This is the equivalent of PHP's sha1()
  * function.
  *
- * @param   {string}    str     String to calculate hash for
- * @returns  {string}    SHA1 hash
- * @example _.sha1('test')
- *              // => a94a8fe5ccb19ba61c4c0873d391e987982fbbd3
+ * @name        module:_.sha1
+ * @function    module:_.sha1
+ * @memberof    module:_
+ * @param       {string}    str     String to calculate hash for
+ * @returns     {string}    SHA1 hash
+ * @example 
+ *  _.sha1('test')
+ *  // => a94a8fe5ccb19ba61c4c0873d391e987982fbbd3
  */
 function sha1(str) {
     var rotate_left = function rotate_left(n, s) {
@@ -588,11 +809,15 @@ function sha1(str) {
 /**
  * Generate a hash of a given string, using the provided salt
  *
- * @param   {string}    str     String to hash
- * @param   {string}    salt    Salt to use for hash
- * @returns  {string}    base64 encoded hash
- * @example _.hash('superSecretPassword','secret-salt')
- *              // => ebA3UZET3LDQWzl <cut> TUnV5oRxAvOLsA==
+ * @name        module:_.makeHash
+ * @function    module:_.makeHash
+ * @memberof    module:_
+ * @param       {string}    str     String to hash
+ * @param       {string}    salt    Salt to use for hash
+ * @returns     {string}    base64 encoded hash
+ * @example 
+ *  _.makeHash('superSecretPassword','secret-salt')
+ *  // => ebA3UZET3LDQWzl <cut> TUnV5oRxAvOLsA==
  */
 function makeHash(str, salt) {
     if (!_.isString(str) || !_.isString(salt)) throw new Error('_.hash() requires two string parameters, a string to hash and a salt');
@@ -608,11 +833,15 @@ function makeHash(str, salt) {
 /**
  * Return a randomly generated string - at a specific length
  *
- * @param   {number}    length  Length of the desored string (Default: 20)
- * @returns  {string}
+ * @name        module:_.randStr
+ * @function    module:_.randStr
+ * @memberof    module:_
+ * @param       {number}    length  Length of the desored string (Default: 20)
+ * @returns     {string}
  * @todo    Add the ability to specify the 'possible' string characters
- * @example _.randStr( 15 )
- *              // => gyC8Q9MABoEjGK6
+ * @example 
+ *  _.randStr( 15 )
+ *  // => gyC8Q9MABoEjGK6
  */
 function randStr(length) {
     length = length || 20;
@@ -631,170 +860,58 @@ function randStr(length) {
 }
 
 /**
- * Return the type of a specific variable, much like the standard 'typeof', only
- * with a little more functionality. This is primarily used for input from
- * libraries/packages/modules that may convert the variable to a different type
- * when interacting with it. For example, pretty much anything passed through the
- * URI parameters will be a string, as well as anything passed through GetOpts,
- * but you may want integers, for example, to actually be identified as numbers, or
- * true/false/null/undefined strings to be identified as boolean/null/undefined.
- * That's what the scrutinize parameter does here, it will process the variable
- * to attempt to identify the type it originally was.
- *
- * NOTE: If no type is matched, then the toString() value will be returned
- *
- * @param   {*}         value           Value to process
- * @param   {boolean}   inspect         Determine if the true value type should be
- *                                      determined through logical processing
- * @param   {object}    returnTypes     Object of return type strings to overwrite
- * @param   {object}    flaggedVals     Values used to determine the real value types
- *                                      of flagged values (Only used if scrutinize is
- *                                      enabled)
- * @returns  {string}    The variable type; The default type names are:
- *                          undefined, null, string, boolean, array, element, date, regexp, object, number, function, unknown
- *                       However, these can be overridden by providing an object as the 3rd parameter
- * @example _.typeof( [1,2] )       // array
- *          _.typeof( 'foo' )       // string
- *          _.typeof( true )        // boolean
- *          _.typeof( 'true' )      // string
- *          _.typeof( 'true',true ) // boolean
- *          _.typeof( null )        // null
- *          _.typeof( 'null' )      // string
- *          _.typeof( 'null',true ) // null
- */
-function getTypeof(value, inspect, returnTypes, flaggedVals) {
-    // String representations of the value types (Overridden by returnTypes if defined)
-    var types = _.extend({
-        undefined: 'undefined',
-        null: 'null',
-        string: 'string',
-        boolean: 'boolean',
-        array: 'array',
-        element: 'element',
-        date: 'date',
-        regexp: 'regexp',
-        object: 'object',
-        number: 'number',
-        function: 'function',
-        unknown: 'unknown'
-    }, returnTypes || {});
-
-    // Flagged values for string variables; EG: if string is 'true', then the it's Boolean (Overridden by
-    // flaggedVals if defined)
-    var flagged = _.extend({
-        boolean: ['true', 'false'],
-        null: ['null', 'NULL'],
-        undefined: ['undefined']
-    }, flaggedVals || {});
-
-    // Retrieve the actual object type from the prototype
-    //const objType = Object.prototype.toString.call( value )
-
-    // Attempt to regex match the type (value should be [object TYPE]
-    //const objTypeRegex = objType.match( /^\[object\s(.*)\]$/ )
-
-    /* $lab:coverage:off$ */
-    // Match the type, or use the types.undefined (This shouldn't ever not match)
-    //const objTypeString = objTypeRegex[1] ? objTypeRegex[1].toLowerCase() : types.unknown
-    /* $lab:coverage:on$ */
-
-    if (_.isUndefined(value)) return types.undefined;
-
-    if (_.isNull(value)) return types.null;
-
-    // String values are what get opened to scrutiny, if enabled
-    if (_.isString(value)) {
-        // If inspect isnt enabled, then just return string
-        if (!!inspect === false) return types.string;
-
-        // Numbers should be the same value if leniently compared against it's float-parsed self
-        if (Number(value) == value) return types.number;
-
-        // Check if this string is inside the boolean flags
-        if (_.indexOf(flagged.boolean, value) !== -1) return types.boolean;
-
-        // Check if its inside any null flags
-        if (_.indexOf(flagged.null, value) !== -1) return types.null;
-
-        // Check if its inside any undefined flags
-        if (_.indexOf(flagged.undefined, value) !== -1) return types.undefined;
-
-        // If no parser caught it, then it must be a string
-        return types.string;
-    }
-
-    // Certain check types can't be misconstrued as other types, unlike other types (such as objects), get those out
-    // of the way
-    if (_.isBoolean(value)) return types.boolean;
-
-    if (_.isNumber(value)) return types.number;
-
-    if (_.isDate(value)) return types.date;
-
-    if (_.isRegExp(value)) return types.regexp;
-
-    /* $lab:coverage:off$ */
-    // Disabling coverage for this, since unit testing is done via node
-    if (_.isElement(value)) return types.element;
-    /* $lab:coverage:on$ */
-
-    // Since isObject returns true for functions, check this before that
-    if (_.isFunction(value)) return types.function;
-
-    // Since isObject also returns true for arrays, check that before as well
-    if (_.isArray(value)) return types.array;
-
-    // isObject should be last for any possible object 'types'
-    if (_.isObject(value)) return types.object;
-
-    /* $lab:coverage:off$ */
-    // If nothing else was caught, then return the type found via the prototypes toString() call
-    // Note: Disabling coverage, since I can't find a value to reach this, and it's just in case I missed something.
-    // It helps me sleep at night
-    return getType(value);
-    /* $lab:coverage:on$ */
-}
-
-/**
  * Substitute specific characters within a string with a specified replacement.
  * Replacement positions are specified by either a single (numeric) value, or an
  * array of numeric values
  *
- * @param   {string}        str         String to process
- * @param   {number|array}  index       Location(s) to be substituted
- * @param   {string}        character   Character to substitute replacements with
+ * @name        module:_.replaceAt
+ * @function    module:_.replaceAt
+ * @memberof    module:_
+ * @param       {string}            str         String to process
+ * @param       {(number|array)}    indexndex   Location(s) to be substituted
+ * @param       {string}            character   Character to substitute replacements with
+ * @returns     {string}    Parsed/modified version of the provided string
  * @todo    Allow the character parameter to be an array, and use the alternator method to iterate through them while substituting the replacements
  * @todo    Allow the index to be a range
- * @example _.replaceAt( 'baz', 2, 'r')
- *              // => bar
- *          _.replaceAt( 'bad-word', [1,2,5,6], '*')
- *              // => b**-w**d
- *          _.replaceAt( 'Hello World', [6,7,8,9,10] )
- *              // => Hello ?????
+ * @example 
+ *  _.replaceAt( 'baz', 2, 'r')
+ *  // => bar
+ *  _.replaceAt( 'bad-word', [1,2,5,6], '*')
+ *  // => b**-w**d
+ *  _.replaceAt( 'Hello World', [6,7,8,9,10] )
+ *  // => Hello ?????
  */
 function replaceAt(str, index, character) {
     character = character || '?';
     if (_.isArray(index)) {
         return __(str).map(function (s, i) {
-            if (_.indexOf(index, i) === -1) return s;else return character;
+            if (_.indexOf(index, i) === -1) {
+                return s;
+            }
+
+            return character;
         }).value().join('');
-    } else {
-        return str.substr(0, index) + character + str.substr(index + character.length);
     }
+
+    return str.substr(0, index) + character + str.substr(index + character.length);
 }
 
 /**
- * Return items true type by grabbing the 2nd string content from
- * Object.prototype.toString.call, as opposed to the less-specific
- * 'typeof'
+ * Return items true type by grabbing the 2nd string content from Object.prototype.toString.call, as opposed to the 
+ * less-specific 'typeof'
  *
- * @param   {*}     item    Item to retrieve type for
- * @example _.type([])
- *              // => array
- *          _.type({})
- *              // => object
- *          _.type(() => {})
- *              // => function
+ * @name        module:_.getType
+ * @function    module:_.getType
+ * @memberof    module:_
+ * @param       {*}     item    Item to retrieve type for
+ * @returns     {string}    Type of variable
+ * @example 
+ *  _.type([])
+ *  // => array
+ *  _.type({})
+ *  // => object
+ *  _.type(() => {})
+ *  // => function
  */
 function getType(item) {
     var objType = Object.prototype.toString.call(item);
@@ -810,26 +927,36 @@ function getType(item) {
  * and over again. The replacements can be an array of arrays, an array of objects,
  * or an object
  *
- * @param   {string}        str             String to be parsed/returned
- * @param   {object|array}  replacements    Replacements, with original string as
- *                                          the key, and replacement as the value
- * @param   {string}        modifiers       Regex modifiers to use for search
- *                                          (EG: i for case-insensitivity) 'g'
- *                                          (global) is included by default
- * @example _.multiReplace( 'test', { t: 'T'} )
- *              // => TesT
- *          _.multiReplace( 'foo', { FOO: 'bar'}, 'i' )
- *              // => bar
- *          _.multiReplace( 'Windows XP', [{ windows: 'Linux'}, {xp: 'RHEL'}], 'i' )
- *              // => Linux RHEL
+ * @name        module:_.multiReplace
+ * @function    module:_.multiReplace
+ * @memberof    module:_
+ * @param       {string}            str             String to be parsed/returned
+ * @param       {(object|array)}    replacements    Replacements, with original string as the key, and replacement as 
+ *                                                  the value
+ * @param       {string}            modifiers       Regex modifiers to use for search (EG: i for case-insensitivity) 
+ *                                                  'g' (global) is included by default
+ * @returns     {string}    Parsed and modified version of the provided string
+ * @example 
+ *  _.multiReplace( 'test', { t: 'T'} )
+ *  // => TesT
+ *  _.multiReplace( 'foo', { FOO: 'bar'}, 'i' )
+ *  // => bar
+ *  _.multiReplace( 'Windows XP', [{ windows: 'Linux'}, {xp: 'RHEL'}], 'i' )
+ *  // => Linux RHEL
  */
 function multiReplace(str, replacements, modifiers) {
-    if (!str || !_.isString(str)) return str;
+    if (!str || !_.isString(str)) {
+        return str;
+    }
 
-    if (!replacements) return str;
+    if (!replacements) {
+        return str;
+    }
 
     // Replacements need to be an object, or an array with two values (which is verified later)
-    if (!_.isPlainObject(replacements) && !_.isArray(replacements)) throw new Error('Replacements need to be an array or plain object, you gave us a ' + getType(str));
+    if (!_.isPlainObject(replacements) && !_.isArray(replacements)) {
+        throw new Error('Replacements need to be an array or plain object, you gave us a ' + getType(str));
+    }
 
     // Since we later expect for the replacements to be an object, check if its
     // an array, if so, reconstruct it into an object
@@ -851,10 +978,9 @@ function multiReplace(str, replacements, modifiers) {
                 else if (_.isPlainObject(r)) {
                         replacementsObj[Object.keys(r)[0]] = r[Object.keys(r)[0]];
                     }
-                    // Shouldnt ever really get here, but I guess im just paranoid
-                    else {
-                            throw new Error('Replacement structure illegal - Array of non-array and non-object');
-                        }
+
+                // Shouldnt ever really get here, but I guess im just paranoid
+                throw new Error('Replacement structure illegal - Array of non-array and non-object');
             });
 
             replacements = replacementsObj;
@@ -872,12 +998,19 @@ function multiReplace(str, replacements, modifiers) {
 /**
  * Swap the keys and values of a simple plain object
  *
- * @param   {object}    obj Object to swap values for
- * @example _.swap({a:'b', c:'d'})
- *              // => {b:'a', d:'c'}
+ * @name        module:_.swap
+ * @function    module:_.swap
+ * @memberof    module:_
+ * @param       {object}    obj     Object to swap values for
+ * @returns     {object}    Returns a version of the original object with the keys and values switched (wherever possible)
+ * @example 
+ *  _.swap({a:'b', c:'d'})
+ *  // => {b:'a', d:'c'}
  */
 function swap(obj) {
-    if (!_.isPlainObject(obj)) throw new Error('Only plain objects can be swapped, you gave us a ' + getType(obj));
+    if (!_.isPlainObject(obj)) {
+        throw new Error('Only plain objects can be swapped, you gave us a ' + getType(obj));
+    }
 
     var result = {};
 
@@ -892,20 +1025,24 @@ function swap(obj) {
  * Return a new array containing only the unique objects inside the provided
  * array. Unlike _.uniq, this will check _every_ key/value in the array
  *
- * @param   {array}     arr     Array of structurally identical objects
- * @returns  {array}
+ * @name        module:_.uniqObjs
+ * @function    module:_.uniqObjs
+ * @memberof    module:_
+ * @param       {array}     arr     Array of structurally identical objects
+ * @param       {object}    arr[]   All values in the provided array need to be objects
+ * @returns     {array}
  * @example
- *
- * const objs = [ { x: 1, y: 2 }, { a: 1, b: 2 }, { x: 1, y: 2 }]
- *
- * console.log( _( objs ).uniqObjs().value() )
- * console.log( _.uniqObjs( objs ) )
- *
- * // => [ { x: 1, y: 2 }, { a: 1, b: 2 } ]
+ *  // Remove any duplicate objects
+ *  const objs = [ { x: 1, y: 2 }, { a: 1, b: 2 }, { x: 1, y: 2 }]
+ *  console.log( _( objs ).uniqObjs().value() )
+ *  console.log( _.uniqObjs( objs ) )
+ *  // => [ { x: 1, y: 2 }, { a: 1, b: 2 } ]
  */
 function uniqObjs(arr) {
     // Make sure that the arr parameter is a defined & populated array of objects
-    if (!_.isArray(arr) || !arr.length || !_.isObject(arr[0])) return false;
+    if (!_.isArray(arr) || !arr.length || !_.isObject(arr[0])) {
+        return false;
+    }
 
     var uniqs = [];
 
@@ -930,17 +1067,22 @@ function uniqObjs(arr) {
  * a 2nd check onto lodashes isNumber, which uses a lenient comparative operator
  * to check if the value of Number is the same as the provided number
  *
- * @param   {string|integer|number}  num     Number to check
- * @returns  {boolean}
+ * @name        module:_.isNumeric
+ * @function    module:_.isNumeric
+ * @memberof    module:_
+ * @param       {(string|integer|number)}   num     Number to check
+ * @returns     {boolean}
  * @example
+ *  _.isNumber( 123 )  
+ *  _.isNumber( '123' )
+ *  _.isNumber( 1.2 )  
+ *  _.isNumber( '1.2' )
+ *  // => true
  *
- * _.isNumber( 123   )
- * _.isNumber( '123' )
- * _.isNumber( 1.2   )
- * _.isNumber( '1.2' )
- *
- * // => true
- *
+ *  _.isNumber( 'foo' )
+ *  _.isNumber( [] )   
+ *  _.isNumber( {} ) 
+ *  // => false
  */
 function isNumeric(num) {
     return _.isNumber(num) || Number(num) == num;
@@ -949,15 +1091,30 @@ function isNumeric(num) {
 /**
  * Validate a string against an RFC822 compliant pattern
  *
- * @param   {string}    email   Email address to validate against pattern
- * @returns  {boolean}
+ * @name        module:_.isEmail
+ * @function    module:_.isEmail
+ * @memberof    module:_
+ * @param       {string}    email   Email address to validate against pattern
+ * @returns     {boolean}
+ * @example
+ *  _.isEmail( 'j@linux.com' ) 
+ *  // => true
+ *
+ *  _.isEmail( 'j@linux.c' ) 
+ *  _.isEmail( 'jinux.com' ) 
+ *  _.isEmail( null )  
+ *  // => false
  */
 function isEmail(email) {
     // Must be a string!
-    if (!_.isString(email)) return false;
+    if (!_.isString(email)) {
+        return false;
+    }
 
     // Verify the length (using min/max standards)
-    if (email.length < 4 || email.length > 255) return false;
+    if (email.length < 4 || email.length > 255) {
+        return false;
+    }
 
     // Only RFC822 compliant pattern that would work with JS
     return (/^([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22))*\x40([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d))*$/.test(email)
@@ -969,21 +1126,27 @@ function isEmail(email) {
  * source, then passes it off to _.isMatch, (Since objects/arrays with
  * same values in different orders would be considered discrepancies
  *
- * @oaram   {*}         object      Item A to match to B
- * @oaram   {*}         source      Item B to match to A
- * @oaram   {function}  customizer  Function to cuztomize the object and src
- *                                  (Just handed of to _.isMatch)
- * @returns  {boolean}
- *
- * _.sortMatch([1,2,3], [3,2,1])
- *
- * // => true
- *
+ * @name        module:_.sortMatch
+ * @function    module:_.sortMatch
+ * @memberof    module:_
+ * @param       {*}         object      Item A to match to B
+ * @param       {*}         source      Item B to match to A
+ * @param       {function=} customizer  Function to cuztomize the object and src (Just handed of to _.isMatch)
+ * @returns     {boolean}
+ * @example
+ *  _.sortMatch( [1,2,3], [3,2,1] )
+ *  // => true
+ *  _.sortMatch( [1,2,'3'], [3,2,1] )
+ *  // => false
  */
 function sortMatch(object, source, customizer) {
-    if (_.isUndefined(object) || _.isUndefined(source)) throw new Error('Must define two same-type values to sort and match');
+    if (_.isUndefined(object) || _.isUndefined(source)) {
+        throw new Error('Must define two same-type values to sort and match');
+    }
 
-    if (getType(object) !== getType(source)) return false;
+    if (getType(object) !== getType(source)) {
+        return false;
+    }
 
     if (_.isPlainObject(object)) {
         object = sortObj(object);
@@ -1004,24 +1167,34 @@ function sortMatch(object, source, customizer) {
  * representations of the boolean values are lower). Also compares integer
  * values
  *
- * @param   {string|boolean|integer} value  Value to compare
- * @param   {array|string}           trues  Any other custom 'true' type
- *                                          variables, an attempt is made
- *                                          to convert any value to an array
- * @param   {boolean}                lower  toLowerCase() the input val
- * @example bool( true ) === true
- *          bool( 'true' ) === true
- *          bool( 'false' ) === false
- *          bool( false ) === false
- *          bool( 1 ) === true
- *          bool( '1' ) === true
- *          bool( 0 ) === false
- *          bool( '0' ) === false
- *          bool( 'foo', [ 'foo', 'bar' ] ) === true
- *          bool( 'foo', [ 'bar', 'baz' ] ) === false
+ * @name        module:_.bool
+ * @function    module:_.bool
+ * @memberof    module:_
+ * @param       {(string|boolean|integer)}  value           Value to compare
+ * @param       {(array|string)}            trues           Any other custom 'true' type variables, an attempt is made 
+ *                                                          to convert any  value to an array
+ * @param       {boolean}                   [lower=false]   Process the values after toLowerCase() is called
+ * @returns     Boolean casted version of the provided value
+ * @example 
+ *  _.bool( true ) === true
+ *  _.bool( 'true' ) === true
+ *  _.bool( 1 ) === true
+ *  _.bool( 'foo', [ 'foo', 'bar' ] ) === true
+ *  _.bool( '1' ) === true
+ *  _.bool( 'false' ) === false
+ *  _.bool( false ) === false
+ *  _.bool( 0 ) === false
+ *  _.bool( '0' ) === false
+ *  _.bool( 'foo', [ 'bar', 'baz' ] ) === false
  */
 function bool(value, trues, lower) {
-    if (_.isUndefined(trues)) trues = [];else if (_.isString(trues)) trues = [trues];else if (!_.isArray(trues)) throw new Error('Illegal additional true types, must be string or array, received: ' + getType(trues));
+    if (_.isUndefined(trues)) {
+        trues = [];
+    } else if (_.isString(trues)) {
+        trues = [trues];
+    } else if (!_.isArray(trues)) {
+        throw new Error('Illegal additional true types, must be string or array, received: ' + getType(trues));
+    }
 
     trues = _.union([1, '1', true, 'true'], trues);
 
@@ -1031,72 +1204,101 @@ function bool(value, trues, lower) {
 /**
  * Ensure a specific string ends with a certain character
  *
- * @param   {string}    str     String to parse and modify (if needed)
- * @param   {string}    end     String to check for on the ending, and possibly append
- * @example _.endWith('/User/john.doe/Documents', '/')
- *              // => /User/john.doe/Documents/
- *          _.endWith('Something else.', '.')
- *              // => Something else.
+ * @name        module:_.endWith
+ * @function    module:_.endWith
+ * @memberof    module:_
+ * @param       {string}    str         String to parse and modify (if needed)
+ * @param       {string}    endChar     String to check for on the ending, and possibly append
+ * @returns     {string}    The string returned will be either the exact same string provided, or ${str + endChar} if 
+ *                          the original string doesn't end with the endChar character
+ * @example 
+ *  _.endWith('/User/john.doe/Documents', '/')
+ *  // => /User/john.doe/Documents/
+ *  _.endWith('Something else.', '.')
+ *  // => Something else.
  */
-function endWith(str, end) {
-    return _.endsWith(str, end) ? str : str + end;
+function endWith(str, endChar) {
+    return _.endsWith(str, endChar) ? str : str + endChar;
 }
 
 /**
  * Ensure a specific string DOESN'T end with a certain character
  *
+ * @name        module:_.dontEndWith
+ * @function    module:_.dontEndWith
+ * @memberof    module:_
  * @todo Should be able to replace an ending str like // with /
- * @param   {string}    str     String to parse and modify (if needed)
- * @param   {string}    end     String to check for on the ending, and possibly remove
- * @example _.dontEndWith('/v1/resource/name/', '/')
- *              // => /v1/resource/name
+ * @param       {string}    str     String to parse and modify (if needed)
+ * @param       {string}    endChar     String to check for on the ending, and possibly remove
+ * @returns     {string}    The string returned will be either the exact same string provided, or a version of the
+ *                          original string with the value of endChar removed from the end
+ * @example 
+ *  _.dontEndWith('/v1/resource/name/', '/')
+ *  // => /v1/resource/name
  */
-function dontEndWith(str, end) {
-    return _.endsWith(str, end) ? str.replace(new RegExp(end + '$'), '') : str;
+function dontEndWith(str, endChar) {
+    return _.endsWith(str, endChar) ? str.replace(new RegExp(endChar + '$'), '') : str;
 }
 
 /**
  * Ensure a specific string starts with a certain character
  *
- * @param   {string}    str     String to parse and modify (if needed)
- * @param   {string}    start   String to check for on the beginning, and possibly append
- * @example _.startWith('Documents/', '~/')
- *              // => ~/Documents/
- *          _.startWith('Something else.', '.')
- *              // => Something else.
- *          _( 'Using startsWith and endsWith together' )
- *            .startWith('(')
- *            .endWith(')')
- *            .value()
- *            // => (Using startsWith and endsWith together)
+ * @name        module:_.startWith
+ * @function    module:_.startWith
+ * @memberof    module:_
+ * @param       {string}    str         String to parse and modify (if needed)
+ * @param       {string}    startChar   String to check for on the beginning, and possibly append
+ * @returns     {string}    The string returned will be either the exact same string provided, or ${startChar + str} if 
+ *                          the original string doesn't begin with the startChar character
+ * @example 
+ *  _.startWith('Documents/', '~/')
+ *  // => ~/Documents/
+ *  _.startWith('Something else.', '.')
+ *  // => Something else.
+ *  _( 'Using startsWith and endsWith together' )
+ *  .startWith('(')
+ *  .endWith(')')
+ *  .value()
+ *  // => (Using startsWith and endsWith together)
  */
-function startWith(str, start) {
-    return _.startsWith(str, start) ? str : start + str;
+function startWith(str, startChar) {
+    return _.startsWith(str, startChar) ? str : startChar + str;
 }
 
 /**
  * Ensure a specific string DOESN'T start with a certain character
  *
+ * @name        module:_.dontStartWith
+ * @function    module:_.dontStartWith
+ * @memberof    module:_
  * @todo Should be able to replace an starting str like // with /
- * @param   {string}    str     String to parse and modify (if needed)
- * @param   {string}    start   String to check for on the beginning, and possibly remove
- * @example _.dontStartWith('.unhide-me', '.')
- *              // => unhide-me
+ * @param       {string}    str         String to parse and modify (if needed)
+ * @param       {string}    startChar   String to check for on the beginning, and possibly remove
+ * @returns     {string}    The string returned will be either the exact same string provided, or a version of the 
+ *                          original string with the value of startChar removed from the beginning
+ * @example 
+ *  _.dontStartWith('.unhide-me', '.')
+ *  // => unhide-me
  */
-function dontStartWith(str, start) {
-    return _.startsWith(str, start) ? str.replace(new RegExp('^' + start), '') : str;
+function dontStartWith(str, startChar) {
+    return _.startsWith(str, startChar) ? str.replace(new RegExp('^' + startChar), '') : str;
 }
 
 /**
  * Convert any new-line characters to HTML Line breaks, which can optionally be specified,
  * but defaults to just </br>. The replaced characters consists of \r\n, \n\r, \n and \r.
  *
- * @param   {string}    str     String to process and replace any new lines for
- * @param   {string}    br      HTML Break (</br> by default)
+ * @name        module:_.nl2br
+ * @function    module:_.nl2br
+ * @memberof    module:_
+ * @param       {string}    str             String to process and replace any new lines for
+ * @param       {string}    [br='</br>']    HTML Break (</br> by default)
+ * @returns     {string}    Modified version of ${str}, with all new-line characters replaced with an HTML line break
  * @todo    Another parameter to optionally trim the string before line breaks to get rid of first/last
  * @todo    Another parameter to keep the \n on the end of the newly added </br> tag
- * @example _.nl2br("One\r\nTwo\n\rThree\nFour\rFive")
- *              // => One</br>Two</br>Three</br>Four</br>Five
+ * @example 
+ *  _.nl2br("One\r\nTwo\n\rThree\nFour\rFive")
+ *  // => One</br>Two</br>Three</br>Four</br>Five
  */
 function nl2br(str, br) {
     return str.split(/\r\n|\n\r|\n|\r/).join(br || '</br>');
@@ -1107,12 +1309,17 @@ function nl2br(str, br) {
  * which can optionally be specified, but defaults to just \r\n. The HTML break replaced is </br>, <br>,
  * </BR> or <BR>
  *
- * @param   {string}    str     String to process and replace any HTML line breaks for
- * @param   {string}    nl      New line character (\r\n by default)
+ * @name        module:_.br2nl
+ * @function    module:_.br2nl
+ * @memberof    module:_
+ * @param       {string}    str             String to process and replace any HTML line breaks for
+ * @param       {string}    [nl='\r\n']     New line character (\r\n by default)
+ * @returns     {string}    Modified version of ${str}, with all HTML line breaks replaced with new-line characters
  * @todo    Another parameter to optionally trim the string before line breaks to get rid of first/last
  * @todo    Another parameter to keep the \</br> tag on the end of the newly added \n
- * @example _.nl2br("One<br>Two</br>Three</BR>Four<BR>Five")
- *              // => One\r\nTwo\r\nThree\r\nFour\r\nFive
+ * @example 
+ *  _.nl2br("One<br>Two</br>Three</BR>Four<BR>Five")
+ *  // => One\r\nTwo\r\nThree\r\nFour\r\nFive
  */
 function br2nl(str, nl) {
     return str.split(/<\/?br>/i).join(nl || "\r\n");
@@ -1127,19 +1334,26 @@ function br2nl(str, nl) {
  * http://addons.teamspeak.com/directory/addon/miscellaneous-tools/TXT-English-badwords-bans-and-list.html
  * Note: This only supports the English language, the dirty version
  *
- * @param   {string}    word        Word to censor
- * @param   {string}    masker      Single character or full single word
- * @param   {string}    maskType    The masking 'type', can be:
+ * @name        module:_.censor
+ * @function    module:_.censor
+ * @memberof    module:_
+ * @param       {string}    word                    Word to censor and parse
+ * @param       {string}    [masker='*']            Single character or full single word
+ * @param       {string}    [maskType='partial']    The masking 'type', can be:
  *                                      full        Entire word
  *                                      single      Single character
  *                                      firstlast   First and last letters
  *                                      middle      All BUT first and last
  *                                      partial     Majority of letters (55% after first letter)
- * @example _.censor('damn')
- *              // => d**n
+ * @returns     {string}    Parsed and censored version of the provided word
+ * @example 
+ *  _.censor('damn')
+ *  // => d**n
  */
 function censor(word, masker, maskType) {
-    if (!word) return word;
+    if (!word) {
+        return word;
+    }
 
     masker = masker || '*';
     maskType = maskType || 'partial';
@@ -1148,42 +1362,48 @@ function censor(word, masker, maskType) {
     var encWord = new Buffer(word).toString('base64');
 
     // Lets hope this is a God fearing christian without a potty mouth
-    if (_.indexOf(censored, encWord) === -1) return word;
+    if (_.indexOf(censored, encWord) === -1) {
+        return word;
+    }
 
     // Return the masker to default if it's not a string
-    if (!masker || !_.isString(masker)) masker = '*';
+    if (!masker || !_.isString(masker)) {
+        masker = '*';
+    }
 
     // If just a single character was given for the masker, then we can use the maskType
-    if (masker.length <= 1) switch (maskType) {
-        case 'full':
-            return _.repeat(masker, word.length);
-            break;
+    if (masker.length <= 1) {
+        switch (maskType) {
+            case 'full':
+                return _.repeat(masker, word.length);
+                break;
 
-        case 'single':
-            return replaceAt(word, 2, masker);
-            break;
+            case 'single':
+                return replaceAt(word, 2, masker);
+                break;
 
-        case 'firstlast':
-            return replaceAt(word, [0, word.length - 1], masker);
-            break;
+            case 'firstlast':
+                return replaceAt(word, [0, word.length - 1], masker);
+                break;
 
-        case 'middle':
-            var middles = _(word).map(function (s, i) {
-                return i;
-            }).drop().dropRight().value();
-            return replaceAt(word, middles, masker);
-            break;
+            case 'middle':
+                var middles = _(word).map(function (s, i) {
+                    return i;
+                }).drop().dropRight().value();
+                return replaceAt(word, middles, masker);
+                break;
 
-        default:
-            // Partial
-            var replaceNum = Math.floor(55 / 100 * word.length);
-            var range = _.range(1, replaceNum + 1);
-            return replaceAt(word, range, masker);
-            break;
+            default:
+                // Partial
+                var replaceNum = Math.floor(55 / 100 * word.length);
+                var range = _.range(1, replaceNum + 1);
+                return replaceAt(word, range, masker);
+                break;
+        }
     }
 
     // If we were given a phrase as the mask, then just replace the entire word with that
-    else return masker;
+    return masker;
 }
 
 /**
@@ -1191,15 +1411,28 @@ function censor(word, masker, maskType) {
  * password_hash function, which returns a string with the hash AND the salt,
  * making it easier to store in a database, and easier to verify
  *
- * @param   {string}    password        Password to hash
- * @returns  {string}    109 character password hash (salt is first 20 characters)
- * @example _.passwordHash('secret')
- *              // => LIE9OKy0g$eNB <cut> XFMcfx78L5SuZZivA==
+ * @name        module:_.passwordHash
+ * @function    module:_.passwordHash
+ * @memberof    module:_
+ * @param       {string}    password        Password to hash
+ * @returns     {string}    109 character password hash (salt is first 20 characters)
+ * @note        Every password hash is generated by using a salt value that is randomly generated every time, this means 
+ *              that the resulting hash will be different every time it executes, even if the passwords are the same
+ * @example 
+ *  const pwd1 = _.passwordHash('SomePass')
+ *  // => LIE9OKy0g$eNB <cut> XFMcfx78L5SuZZivA==
+ *  const pwd2 = _.passwordHash('SomePass')
+ *  pwd1 === pwd2
+ *  // => false
  */
 function passwordHash(password) {
-    if (!password) throw new Error('No password was given to hash');
+    if (!password) {
+        throw new Error('No password was given to hash');
+    }
 
-    if (!_.isString(password)) throw new Error('Must provide a STRING as a password');
+    if (!_.isString(password)) {
+        throw new Error('Must provide a STRING as a password');
+    }
 
     // Generate the salt
     // THIS MUST NOT CHANGE! If this value is not the same as what
@@ -1213,22 +1446,32 @@ function passwordHash(password) {
 /**
  * Verify a password against a password hash generated by _.passwordHash
  *
- * @param   {string}    password    Password to verify
- * @param   {string}    passwdHash  String generated by _.passwordHash
- * @returns  {boolean}   TRUE if the result of a hash generated with the
- *                      same password and the salt found in passwordHash,
- *                      matches the hash inside passwordHash
- * @example const hash = _.passwordHash('secret')
- *          _.passwordVerify('secret', hash)
- *              // => true
+ * @name        module:_.passwordVerify
+ * @function    module:_.passwordVerify
+ * @memberof    module:_
+ * @param       {string}    password        Password to verify
+ * @param       {string}    passwdHash      String generated by _.passwordHash
+ * @returns     {boolean}   TRUE if the result of a hash generated with the
+ *                          same password and the salt found in passwordHash,
+ *                          matches the hash inside passwordHash
+ * @example 
+ *  const hashA = _.passwordHash( 'secret' )
+ *  _.passwordVerify( 'secret', hashA )
+ *  // => true
  */
 function passwordVerify(password, passwdHash) {
-    if (!password || !passwdHash) throw new Error('Need to provide both a password and a hash to verify');
+    if (!password || !passwdHash) {
+        throw new Error('Need to provide both a password and a hash to verify');
+    }
 
-    if (!_.isString(password) || !_.isString(passwdHash)) throw new Error('Password and hash both need to be strings');
+    if (!_.isString(password) || !_.isString(passwdHash)) {
+        throw new Error('Password and hash both need to be strings');
+    }
 
     // If the hash isn't even the proper length, don't bother checking
-    if (passwdHash.length !== 108) return false;
+    if (passwdHash.length !== 108) {
+        return false;
+    }
 
     // Get the salt from the password hash - first 20 chars
     var salt = passwdHash.substr(0, 20);
@@ -1242,32 +1485,33 @@ function passwordVerify(password, passwdHash) {
 /**
  * Return a copy of the object with the content sorted by the keys
  *
- * @param   {object}    obj         Object to sort by keys
- * @param   {function}  comparator  Function to compare/sort the elements
- * @returns  {object}
+ * @name        module:_.sortObj
+ * @function    module:_.sortObj
+ * @memberof    module:_
+ * @param       {object}    obj         Object to sort by keys
+ * @param       {function}  comparator  Function to compare/sort the elements
+ * @returns     {object}
  * @example
+ *  const obj = {b: 3, c: 2, a: 1}
+ *  console.log( _.sortObj( obj ) )
+ *  console.log( _( obj ).sortObj().value() )
  *
- * const obj = {b: 3, c: 2, a: 1}
+ *  // => {a: 1, b: 3, c: 2}
  *
- * console.log( _.sortObj( obj ) )
- * console.log( _( obj ).sortObj().value() )
- *
- * // => {a: 1, b: 3, c: 2}
- *
- * _.sortObj(obj, (value, key) => {
-     *      return value
-     * })
- *
- * // => {a: 1, c: 2, b: 3}
- *
+ *  _.sortObj( obj, ( value, key ) => value )
+ *  // => {a: 1, c: 2, b: 3}
  */
 function sortObj(obj, comparator) {
     // Make sure we were given an object...
-    if (!_.isObject(obj)) throw new Error('_.sortObj expects an object obj is: ' + getType(obj));
+    if (!_.isObject(obj)) {
+        throw new Error('_.sortObj expects an object obj is: ' + getType(obj));
+    }
 
     // If comparator is provided, then it needs to be a function, if it isn't
     // a function, then throw an error
-    if (!_.isUndefined(comparator) && !_.isFunction(comparator)) throw new Error('_.sortObj expects the comparator to be a function (if defined), but received a: ' + getType(comparator));
+    if (!_.isUndefined(comparator) && !_.isFunction(comparator)) {
+        throw new Error('_.sortObj expects the comparator to be a function (if defined), but received a: ' + getType(comparator));
+    }
 
     // Create an array of the object keys, sorted either alpha/numeric
     // by default, or using the comparator if defined
@@ -1287,20 +1531,30 @@ function sortObj(obj, comparator) {
  * Validate that an array, or objects in an array, or elements within the
  * objects in an array are all unique
  *
- * @param   {array}     collection  Single level array or array of objects
- * @param   {string}    element     If `collection` is an array of objects, and
- *                                  we are to check that a specific element in
- *                                  those objects is unique, then this should be
- *                                  the name of the element in the object
- * @returns  {boolean}
- * @example _.isUniq( [ 1, 2, 3, 2 ] ) === false
- *          _.isUniq( [ {a: 1}, {a: 2}, {a: 1} ] ) === false
- *          _.isUniq( [ {a: 1, b: 2}, {a: 2, b: 5}, {a: 1, b: 2} ], 'b') === false
+ * @name        module:_.isUniq
+ * @function    module:_.isUniq
+ * @memberof    module:_
+ * @param       {array}     collection  Single level array or array of objects
+ * @param       {string=}   element     If `collection` is an array of objects, and we are to check that a specific 
+ *                                      element in those objects is unique, then this should be the name of the element
+ *                                      in the object
+ * @returns     {boolean}  
+ * @example 
+ *  _.isUniq( [ 1, 2, 3, 2 ] )
+ *  // => false
+ *  _.isUniq( [ {a: 1}, {a: 2}, {a: 1} ] ) 
+ *  // => false
+ *  _.isUniq( [ {a: 1, b: 2}, {a: 2, b: 5}, {a: 1, b: 2} ], 'b')
+ *  // => false
  */
 function isUniq(collection, element) {
-    if (!_.isArray(collection)) throw new Error('Collection needs to be an array, you provided a ' + getTypeof(collection));
+    if (!_.isArray(collection)) {
+        throw new Error('Collection needs to be an array, you provided a ' + getTypeof(collection));
+    }
 
-    if (collection.length === 0) return true;
+    if (collection.length === 0) {
+        return true;
+    }
 
     // If this is an array of objects, then handle it differently than if its just an array
     if (_.isObject(collection[0])) {
@@ -1309,9 +1563,7 @@ function isUniq(collection, element) {
             return uniqObjs(collection).length === collection.length;
         }
         // If an element was provided, then check that just that element is unique
-        else {
-                return _.uniqBy(collection, element).length === collection.length;
-            }
+        return _.uniqBy(collection, element).length === collection.length;
     }
 
     // Here, we can just unique the array and verify the length
@@ -1324,12 +1576,21 @@ function isUniq(collection, element) {
  * This is basically the same as lodashes _.remove method, except this works for Objects,
  * not arrays.
  *
- * @param   {object}        obj     Object (to mutate)
- * @param   {array|string}  del     Element(s) to remove from obj
- * @returns  {object}        Object of items removed from obj param
+ * @name        module:_.removeObj
+ * @function    module:_.removeObj
+ * @memberof    module:_
+ * @param       {object}            obj     Object (to mutate)
+ * @param       {(array|string)}    del     Element(s) to remove from obj
+ * @returns     {object}            Object of items removed from obj param
  * @note    This will mutate the original object, removing the `del` element(s)
  * @todo    Need to add some sanity checking, some more logic, etc etc
  * @todo    This should be able to take a function for the del
+ * @example
+ *  var testObj = { first: 'John', last: 'Doe', middle: 'w', age: 26, height: 75 }
+ *  testObj = _.removeObj( testObj, 'height')
+ *  // => { first: 'John', last: 'Doe', middle: 'w', age: 26 }
+ *  testObj = _.removeObj( testObj, [ 'age','middle' ])
+ *  // => { first: 'John', last: 'Doe' }
  */
 function removeObj(obj, del) {
     var picked = _.pick(obj, del);
@@ -1346,12 +1607,18 @@ function removeObj(obj, del) {
 }
 
 /**
- * UNDER CONSTRUCTION
  * Escape a string, making it safe to use in a MySQL query. Based off of PHPs
  * mysql_real_escape_string
  *
- * @param   {string}    content     String to use in the MySQL query
- * @returns  {string}    Safe version of the content string parameter
+ * @name        module:_.mysqlEscape
+ * @function    module:_.mysqlEscape
+ * @memberof    module:_
+ * @param       {string}                content     String to use in the MySQL query
+ * @returns     {string}                            Safe version of the content string parameter
+ * @note        ALPHA PHASE - Under Construction
+ * @example
+ *  _.mysqlEscape( "Justin\\\\'s Boots" )
+ *  // => "Justin\\'s Boots"
  */
 function mysqlEscape(content) {
     var replacements = [["\\", "\\\\"], ["\'", "\\\'"], ["\"", "\\\""], ["\n", "\\\n"], ["\r", "\\\r"], ["\x00", "\\\x00"], ["\x1a", "\\\x1a"]];
@@ -1382,8 +1649,17 @@ function mysqlEscape(content) {
 /**
  * Check if a specified string is in snake_case format
  *
- * @param   {string}    str     String to inspect
- * @returns  {boolean}
+ * @name        module:_.isSnake
+ * @function    module:_.isSnake
+ * @memberof    module:_
+ * @param       {string}    str     String to inspect
+ * @returns     {boolean}   Returns True if the string is in case snake, False otherwise.
+ * @note        ALPHA PHASE - Under Construction
+ * @example
+ *  _.isSnake( _.snakeCase('Foo Bar') )
+ *  // => true
+ *  _.isSnake( _.camelCase('Foo Bar') )
+ *  // => false
  */
 function isSnake(str) {
     return str === _.snakeCase(str);
@@ -1392,8 +1668,17 @@ function isSnake(str) {
 /**
  * Check if a specified string is in camelCase format
  *
- * @param   {string}    str     String to inspect
- * @returns  {boolean}
+ * @name        module:_.isCamel
+ * @function    module:_.isCamel
+ * @memberof    module:_
+ * @param       {string}    str     String to inspect
+ * @returns     {boolean}
+ * @note        ALPHA PHASE - Under Construction
+ * @example
+ *  _.isSnake( _.snakeCase('Foo Bar') )
+ *  // => true
+ *  _.isSnake( _.camelCase('Foo Bar') )
+ *  // => false
  */
 function isCamel(str) {
     return str === _.camelCase(str);
@@ -1402,8 +1687,17 @@ function isCamel(str) {
 /**
  * Check if a specified string is in kebab-case format
  *
- * @param   {string}    str     String to inspect
- * @returns  {boolean}
+ * @name        module:_.isKebab
+ * @function    module:_.isKebab
+ * @memberof    module:_
+ * @param       {string}    str     String to inspect
+ * @returns     {boolean}
+ * @note        ALPHA PHASE - Under Construction
+ * @example
+ *  _.isKebab( _.kebabCase('Foo Bar') )
+ *  // => true
+ *  _.isKebab( _.camelCase('Foo Bar') )
+ *  // => false
  */
 function isKebab(str) {
     return str === _.kebabCase(str);
@@ -1412,8 +1706,17 @@ function isKebab(str) {
 /**
  * Check if a specified string is in Start Case format
  *
- * @param   {string}    str     String to inspect
- * @returns  {boolean}
+ * @name        module:_.isStart
+ * @function    module:_.isStart
+ * @memberof    module:_
+ * @param       {string}    str     String to inspect
+ * @returns     {boolean}
+ * @note        ALPHA PHASE - Under Construction
+ * @example
+ *  _.isSnake( _.snakeCase('Foo Bar') )
+ *  // => true
+ *  _.isSnake( _.camelCase('Foo Bar') )
+ *  // => false
  */
 function isStart(str) {
     return str === _.startCase(str);
@@ -1422,8 +1725,16 @@ function isStart(str) {
 /**
  * Check if a specified string is in lower case format
  *
- * @param   {string}    str     String to inspect
- * @returns  {boolean}
+ * @name        module:_.isLower
+ * @function    module:_.isLower
+ * @memberof    module:_
+ * @param       {string}    str     String to inspect
+ * @returns     {boolean}
+ * @example
+ *  _.isLower( _.lowerCase('Foo Bar') )
+ *  // => true
+ *  _.isLower( _.upperCase('Foo Bar') )
+ *  // => false
  */
 function isLower(str) {
     return str === _.lowerCase(str);
@@ -1432,8 +1743,17 @@ function isLower(str) {
 /**
  * Check if a specified string is in UPPER CASE format
  *
- * @param   {string}    str     String to inspect
- * @returns  {boolean}
+ * @name        module:_.isUpper
+ * @function    module:_.isUpper
+ * @memberof    module:_
+ * @param       {string}    str     String to inspect
+ * @returns     {boolean}
+ * @note        ALPHA PHASE - Under Construction
+ * @example
+ *  _.isUpper( _.upperCase('Foo Bar') )
+ *  // => true
+ *  _.isUpper( _.lowerCase('Foo Bar') )
+ *  // => false
  */
 function isUpper(str) {
     return str === _.upperCase(str);
@@ -1442,21 +1762,59 @@ function isUpper(str) {
 /**
  * Retrieve the case type of a specified string
  *
- * @param   {string}            str     String to inspect
- * @returns  {string|undefined}  Will return one of: snake,
- *                              camel, kebab, start, lower,
- *                              upper or undefined if none
+ * @name        module:_.getCase
+ * @function    module:_.getCase
+ * @memberof    module:_
+ * @param       {string}    str     String to inspect
+ * @returns     {(string|undefined)}  Will return one of: snake, camel, kebab, start, lower, upper or undefined if none
+ * @note        ALPHA PHASE - Under Construction
+ * @example
+ * var str = 'Hello World..'
+ *  _.each()
  */
 function getCase(str) {
-    if (isSnake(str)) return 'snake';else if (isCamel(str)) return 'camel';else if (isKebab(str)) return 'kebab';else if (isStart(str)) return 'start';else if (isLower(str)) return 'lower';else if (isUpper(str)) return 'upper';else return undefined;
+    if (isSnake(str)) {
+        return 'snake';
+    }
+
+    if (isCamel(str)) {
+        return 'camel';
+    }
+
+    if (isKebab(str)) {
+        return 'kebab';
+    }
+
+    if (isStart(str)) {
+        return 'start';
+    }
+
+    if (isLower(str)) {
+        return 'lower';
+    }
+
+    if (isUpper(str)) {
+        return 'upper';
+    }
+
+    return undefined;
 }
 
 /**
  * Verify a string is in a specified format.
  *
- * @param   {string}    theCase The case to validate
- * @param   {string}    str     String to inspect
- * @returns  {boolean}
+ * @name        module:_.isCase
+ * @function    module:_.isCase
+ * @memberof    module:_
+ * @param       {string}    theCase The case to validate
+ * @param       {string}    str     String to inspect
+ * @returns     {boolean}
+ * @note        ALPHA PHASE - Under Construction
+ * @example
+ *  _.isCase( 'snake', _.snakeCase( 'Hello World' ) )
+ *  // => true
+ *  _.isCase( 'kebab', _.snakeCase( 'Hello World' ) )
+ *  // => false
  */
 function isCase(theCase, str) {
     switch (theCase) {
@@ -1494,28 +1852,42 @@ function isCase(theCase, str) {
  * Verify that a collection (string, array or object) has all listed values, basically
  * just an array-friendly version of _.includes
  *
- * @param   {array|object|string}   collection  The collection to search
- * @param   {mixed}                 values      The value or values to search for
- * @param   {number}                fromIndex   The index to search from.
- * @returns  {boolean}   Returns `true` based on the result of _.includes
- * @example _.includesAll( [1,2,3], [1,3]) === true
- *          _.includesAll( [1,2,3], [1,2], 2) === false
- *          _.includesAll( {user: 'fred', age: 40 }, ['fred', 40]) === true
- *          _.includesAll( 'abcdef', ['a','d] ) === true
+ * @name        module:_.includesAll
+ * @function    module:_.includesAll
+ * @memberof    module:_
+ * @param       {(array|object|string)} collection  The collection to search
+ * @param       {mixed}                 values      The value or values to search for
+ * @param       {number}                fromIndex   The index to search from.
+ * @returns     {boolean}   Returns `true` based on the result of _.includes
+ * @example 
+ *  _.includesAll( [1,2,3], [1,3] )
+ *  // => true
+ *  _.includesAll( [1,2,3], [1,2], 2 )
+ *  // => false
+ *  _.includesAll( {user: 'fred', age: 40 }, ['fred', 40] )
+ *  // => true
+ *  _.includesAll( 'abcdef', ['a','d] )
+ *  // => true
  */
 function includesAll(collection, values, fromIndex) {
     // Make sure we were given an array as the collection
-    if (!_.isArray(collection) && !_.isObject(collection) && !_.isString(collection)) throw new Error('_.includesAll: Expecting an array, string or object as the collection');
+    if (!_.isArray(collection) && !_.isObject(collection) && !_.isString(collection)) {
+        throw new Error('_.includesAll: Expecting an array, string or object as the collection');
+    }
 
-    if (_.isUndefined(values) || _.isNull(values)) throw new Error('_.includesAll: Need a value to check for');
+    if (_.isUndefined(values) || _.isNull(values)) {
+        throw new Error('_.includesAll: Need a value to check for');
+    }
 
     // Default this to 0
     fromIndex = _.isNumber(fromIndex) ? Number(fromIndex) : 0;
 
     // If were given an array, then iterate through the collection
-    if (_.isArray(values)) return _.every(values, function (v) {
-        return _.includes(collection, v, fromIndex);
-    });
+    if (_.isArray(values)) {
+        return _.every(values, function (v) {
+            return _.includes(collection, v, fromIndex);
+        });
+    }
 
     // If we are NOT given an array for the values, then just hand everything down to the
     // _.includes, according to the documentation, it can accept "anything" as the value
@@ -1527,9 +1899,15 @@ function includesAll(collection, values, fromIndex) {
  * Return the maximum value of all arguments passed. This is the same thing as _.max,
  * only instead of an array, it takes all the arguments
  *
- * @var     {array} arguments   Pulls the arguments provided
+ * @name        module:_.maxOf
+ * @function    module:_.maxOf
+ * @memberof    module:_
+ * @var         {array} arguments   Pulls the arguments provided
  * @todo    Create unit tests
- * @returns  {number}    Maximum value, retrieved by _.max()
+ * @returns     {number}    Maximum value, retrieved by _.max()
+ * @example
+ *  _.maxOf( 1, 20, 'a', ['test'], 1000 )
+ *  // => 1000
  */
 function maxOf() {
     return _.max(_.chain(arguments).map(function (n) {
@@ -1541,9 +1919,15 @@ function maxOf() {
  * Return the minimum value of all arguments passed. This is the same thing as _.min,
  * only instead of an array, it takes all the arguments
  *
- * @var     {array} arguments   Pulls the arguments provided
- * @todo    Create unit tests
- * @returns  {number}    Minimum value, retrieved by _.min()
+ * @name        module:_.minOf
+ * @function    module:_.minOf
+ * @memberof    module:_
+ * @var         {array} arguments   Pulls the arguments provided
+ * @todo        Create unit tests
+ * @returns     {number}    Minimum value, retrieved by _.min()
+ * @example
+ *  _.minOf( 1, 20, 'a', ['test'], 1000 )
+ *  // => 1
  */
 function minOf() {
     return _.min(_.chain(arguments).map(function (n) {
@@ -1558,16 +1942,25 @@ function minOf() {
  * distance, the more different the strings are, but the distance can only be
  * as high as high as the number of characters in the longer string
  *
- * @param   {string|number}    strA    String A
- * @param   {string|number}    strB    String .... Yep, B
- * @returns  {number}            Levenshtein distance value
+ * @name        module:_.levenshtein
+ * @function    module:_.levenshtein
+ * @memberof    module:_
+ * @param       {(string|number)}    strA    String A
+ * @param       {(string|number)}    strB    String .... Yep, B
+ * @returns     {number}            Levenshtein distance value
+ * @note        ALPHA PHASE - Under Construction
  * @todo    Create unit tests
- * @example levenshtein('foo','foo') === 0
- *          levenshtein('foo','bar') === 3
+ * @example 
+ *  levenshtein( 'foo','foo' )
+ *  // => 0
+ *  levenshtein( 'foo','bar' ) 
+ *  // => 3
  */
 function levenshtein(strA, strB) {
     // Make sure we were given Strings or Numbers, and nothing else
-    if (_.isString(strA) && !_.isNumber(strA) || _.isString(strB) && !_.isNumber(strB)) throw new Error('Need to provide two strings or numbers to differentiate');
+    if (_.isString(strA) && !_.isNumber(strA) || _.isString(strB) && !_.isNumber(strB)) {
+        throw new Error('Need to provide two strings or numbers to differentiate');
+    }
 
     var cost = [];
     var n = strA.length;
@@ -1575,7 +1968,9 @@ function levenshtein(strA, strB) {
     var i = void 0;
     var j = void 0;
 
-    if (n === 0 || m === 0) return;
+    if (n === 0 || m === 0) {
+        return;
+    }
 
     for (i = 0; i <= n; i++) {
         _.set(cost, '[' + i + '][0]', i);
@@ -1592,7 +1987,11 @@ function levenshtein(strA, strB) {
         for (j = 1; j <= m; j++) {
             var y = strB.charAt(j - 1);
 
-            if (x == y) cost[i][j] = cost[i - 1][j - 1];else cost[i][j] = 1 + minOf(cost[i - 1][j - 1], cost[i][j - 1], cost[i - 1][j]);
+            if (x == y) {
+                cost[i][j] = cost[i - 1][j - 1];
+            } else {
+                cost[i][j] = 1 + minOf(cost[i - 1][j - 1], cost[i][j - 1], cost[i - 1][j]);
+            }
         }
     }
 
@@ -1603,18 +2002,27 @@ function levenshtein(strA, strB) {
  * String Difference Distance (In percentages). This basically returns
  * the Levenshtein value as a percentage
  *
- * @param   {string|number}    strA    String A
- * @param   {string|number}    strB    String .... Yep, B
- * @returns  {number}            Levenshtein distance percentage (WITHOUT the % on the end)
+ * @name        module:_.strDist
+ * @function    module:_.strDist
+ * @memberof    module:_
+ * @param       {(string|number)}    strA    String A
+ * @param       {(string|number)}    strB    String .... Yep, B
+ * @returns     {number}            Levenshtein distance percentage (WITHOUT the % on the end)
  * @todo    Create unit tests
- * @example strDist('foo','foo') === 0
- *          strDist('foo','bar') === 100
- *          strDist('something','somewhere') === 44.44
+ * @example 
+ *  strDist( 'foo','foo' )
+ *  // => 0
+ *  strDist( 'foo','bar' ) 
+ *  // => 100
+ *  strDist( 'something', 'somewhere' )
+ *  // => 44.44
  */
 function strDist(strA, strB) {
     var distance = levenshtein(strA, strB);
 
-    if (distance === false) return false;
+    if (distance === false) {
+        return false;
+    }
 
     return Number(distance * 100 / maxOf(strA.length, strB.length));
 }
@@ -1623,25 +2031,46 @@ function isCountable(noun) {
     return !_.includes(_internals.uncountable, noun);
 }
 
+/**
+ * Return the plural version of a string
+ *
+ * @name        module:_.plural
+ * @function    module:_.plural
+ * @memberof    module:_
+ * @param       {string}    str     Singular format of a noun
+ * @returns     {string}            Plural version of same noun
+ * @todo    Create unit tests
+ * @example 
+ *  _.plural( 'apple' )
+ *  // => apples
+ *  _.plural( 'toy' )
+ *  // => toys
+ *  _.plural( 'fly' )
+ *  // => flies
+ */
 function plural(str) {
     if (str.lastChar() === 'y') {
         if (str.charAt(str.length - 2).isVowel()) {
             // If the y has a vowel before it (i.e. toys), then you just add the s.
             return str + 's';
-        } else {
-            // If a this ends in y with a consonant before it (fly), you drop the y and add -ies to make it plural.
-            return str.slice(0, -1) + 'ies';
         }
-    } else if (str.substring(str.length - 2) === 'us') {
+
+        // If a this ends in y with a consonant before it (fly), you drop the y and add -ies to make it plural.
+        return str.slice(0, -1) + 'ies';
+    }
+
+    if (str.substring(str.length - 2) === 'us') {
         // ends in us -> i, needs to preceede the generic 's' rule
         return str.slice(0, -2) + 'i';
-    } else if (['ch', 'sh'].indexOf(str.substring(str.length - 2)) !== -1 || ['x', 's'].indexOf(str.lastChar()) !== -1) {
+    }
+
+    if (['ch', 'sh'].indexOf(str.substring(str.length - 2)) !== -1 || ['x', 's'].indexOf(str.lastChar()) !== -1) {
         // If a this ends in ch, sh, x, s, you add -es to make it plural.
         return str + 'es';
-    } else {
-        // anything else, just add s
-        return str + 's';
     }
+
+    // anything else, just add s
+    return str + 's';
 }
 
 /**
@@ -1650,40 +2079,52 @@ function plural(str) {
  *      _.merge( {}, ObjsA, ObjsB )
  * would be the same as
  *      _.mergeObjs( ObjsA, ObjsB )
- *
+ * 
+ * @name        module:_.mergeObjs
+ * @function    module:_.mergeObjs
+ * @memberof    module:_
  * @param   {...object} [sources] The source objects
  * @returns {object}    Newly merged object
- * @example _.mergeObjs( { a: 1 }, { b: 2 }, { c: 3 } )
- *          // => { a: 1, b: 2, c: 3 }
+ * @example 
+ *  _.mergeObjs( { a: 1 }, { b: 2 }, { c: 3 } )
+ *  // => { a: 1, b: 2, c: 3 }
  */
 function mergeObjs(sources) {
     return _.merge.apply(this, _.flatten([{}, arguments || []]));
 }
 
-function matches(source) {
-    return function (obj) {
-        return _.some(_.toPairs(source), function (keyValue) {
+/* Not sure what this is for.. forgot.
+function matches( source ) {
+    return function(obj) {
+        return _.some(_.toPairs(source), function(keyValue) {
             return obj[keyValue[0]] === keyValue[1];
         });
     };
 }
+*/
 
 /**
  * Ensures the item is an instance of the exception specified by type
  *
- * @param   {Mixed}     item    Item/Error/Whatever
- * @param   {Mixed}     type    Exception type (Default: Error)
- * @return  {Mixed}     Returns an instance of Error, or whatevers specified by item
- * @example let err = 'Error Str'
- *          // => Error Str
- *          err = _.setException( err )
- *          // => [Error: Error Str]
- *          err = _.setException( err )
- *          // => [Error: Error Str]
- *          // Notice no matter how many times its used, Error is not nested, as opposed to setting new Error( err )
+ * @name        module:_.setException
+ * @function    module:_.setException
+ * @memberof    module:_
+ * @param       {Mixed}     item            Item/Error/Whatever
+ * @param       {Mixed}     [type=Error]    Exception type (Default: Error)
+ * @returns     {Mixed}     Returns an instance of Error, or whatevers specified by item
+ * @example 
+ *  let err = 'Error Str'
+ *  // => Error Str
+ *  err = _.setException( err )
+ *  // => [Error: Error Str]
+ *  err = _.setException( err )
+ *  // => [Error: Error Str]
+ *  // Notice no matter how many times its used, Error is not nested, as opposed to setting new Error( err )
  */
 function setException(item, type) {
-    if (_.isUndefined(type)) type = Error;
+    if (_.isUndefined(type)) {
+        type = Error;
+    }
 
     return item instanceof type ? item : new type(item);
 }
@@ -1692,22 +2133,33 @@ function setException(item, type) {
  * Pulls a sample from an array - Useful for when iterating over an array (manually), and having to remove the previous
  * iterations
  *
+ * @name        module:_.pullSample
+ * @function    module:_.pullSample
+ * @memberof    module:_
  * @note    This method mutates the array, just as _.pull does
- * @param   {array}   arr   Array to sample
- * @returns {Mixed}         Whatever element was sampled from the array
- * @example var data = [ 100, 200 ]
- *          _.pullSample( data )  // 200
- *          data                    // 100
- *          _.pullSample( data )  // 100
- *          data                    // []
- *          _.pullSample( data )  // []
+ * @param       {array}   arr   Array to sample
+ * @returns     {Mixed}         Whatever element was sampled from the array
+ * @example 
+ *  var data = [ 100, 200 ]
+ *  _.pullSample( data )  
+ *  // => 200                   
+ *  _.pullSample( data )  
+ *  // => 100           
+ *  _.pullSample( data )
+ *  // => []
  */
 function pullSample(arr) {
-    if (_.isUndefined(arr)) return undefined;
+    if (_.isUndefined(arr)) {
+        return undefined;
+    }
 
-    if (!_.isArray(arr)) throw new Error('Expected to sample an array - received a ' + getTypeof(arr));
+    if (!_.isArray(arr)) {
+        throw new Error('Expected to sample an array - received a ' + getTypeof(arr));
+    }
 
-    if (_.isEmpty(arr)) return undefined;
+    if (_.isEmpty(arr)) {
+        return undefined;
+    }
 
     var sample = _.sample(arr);
 
@@ -1720,30 +2172,48 @@ function pullSample(arr) {
  * Pulls an array of samples from an array - Basically the same thing as _.pullSample, except this samples multiple
  * elements, with the amount specified by the size parameter
  *
+ * @name        module:_.pullSampleSize
+ * @function    module:_.pullSampleSize
+ * @memberof    module:_
  * @note    This method mutates the array, just as _.pull does
  * @param   {array}   arr   Array to sample
  * @param   {number}  size  Amount of elements to sample/remove from arr
  * @returns {array}         Array of one or more elements from arr
- * @example var data = [ 100, 200, 300, 400 ]
- *           _.pullSampleSize( data, 2 )  // [ 100, 200 ]
- *           _.pullSampleSize( data, 2 )  // [ 300, 400 ]
- *           _.pullSampleSize( data, 2 )  // [ ]
- *           data                           // []
+ * @example 
+ *  var data = [ 100, 200, 300, 400 ]
+ *  _.pullSampleSize( data, 2 )  // [ 100, 200 ]
+ *  _.pullSampleSize( data, 2 )  // [ 300, 400 ]
+ *  _.pullSampleSize( data, 2 )  // [ ]
+ *  data                           // []
  */
 function pullSampleSize(arr, size) {
-    if (size === 0) return [];
+    if (size === 0) {
+        return [];
+    }
 
-    if (_.isUndefined(size)) size = 1;
+    if (_.isUndefined(size)) {
+        size = 1;
+    }
 
-    if (!_.isNumber(size)) throw new Error('Expected size to be undefined or a number - received a ' + getTypeof(size));
+    if (!_.isNumber(size)) {
+        throw new Error('Expected size to be undefined or a number - received a ' + getTypeof(size));
+    }
 
-    if (_.isUndefined(arr)) return undefined;
+    if (_.isUndefined(arr)) {
+        return undefined;
+    }
 
-    if (!_.isArray(arr)) throw new Error('Expected to sample an array - received a ' + getTypeof(arr));
+    if (!_.isArray(arr)) {
+        throw new Error('Expected to sample an array - received a ' + getTypeof(arr));
+    }
 
-    if (_.isEmpty(arr)) return [];
+    if (_.isEmpty(arr)) {
+        return [];
+    }
 
-    if (size > _.size(arr)) size = _.size(arr);
+    if (size > _.size(arr)) {
+        size = _.size(arr);
+    }
 
     var result = [];
 
@@ -1761,6 +2231,9 @@ function pullSampleSize(arr, size) {
 /**
  * Validation for legitimate regular expression pattern validation
  *
+ * @name        module:_.validPattern
+ * @function    module:_.validPattern
+ * @memberof    module:_
  * @param   {Mixed}             pattern     Pattern to validate (String, number, regexp, etc)
  * @param   {string}            flags       Regular expression flags (Not required)
  * @param   {boolean}           reason      If pattern is invalid, instead of returning false, return the error (string),
@@ -1782,21 +2255,33 @@ function validPattern(pattern, flags, reason) {
     var ptrnType = getTypeof(pattern);
 
     if (!_.includes(permitted, ptrnType)) {
-        if (reason === true) return 'Illegal pattern value type, expecting a \'string\', \'number\' or RegExp object - received a \'' + ptrnType + '\'';else return false;
+        if (reason === true) {
+            return 'Illegal pattern value type, expecting a \'string\', \'number\' or RegExp object - received a \'' + ptrnType + '\'';
+        }
+
+        return false;
     }
 
     // If flags are provided, they must be in string format
     if (!_.isUndefined(flags) && !_.isNull(flags) && !_.isString(flags)) {
-        if (reason === true) return 'Illegal flag value type, expecting type \'string\' or nothing - received a \'' + getTypeof(flags) + '\'';else return false;
+        if (reason === true) {
+            return 'Illegal flag value type, expecting type \'string\' or nothing - received a \'' + getTypeof(flags) + '\'';
+        }
+
+        return false;
     }
 
     // null/undefined
-    if (_.isEmpty(pattern)) return true;
+    if (_.isEmpty(pattern)) {
+        return true;
+    }
 
     // Use this instead of just `arguments`, because we dont want the `reason` to be passed down
     var regexpParams = [pattern];
 
-    if (_.isString(flags)) regexpParams.push(flags);
+    if (_.isString(flags)) {
+        regexpParams.push(flags);
+    }
 
     var isValid = true;
     var err = void 0;
@@ -1809,12 +2294,173 @@ function validPattern(pattern, flags, reason) {
     }
 
     // If its valid, then return true and go no further!
-    if (isValid === true) return true;
+    if (isValid === true) {
+        return true;
+    }
 
     // If there needs to be a reason, then return one if there is one
-    if (reason === true) return err ? err.toString() : 'Invalid RegExp pattern - Unknown reason';
+    if (reason === true) {
+        return err ? err.toString() : 'Invalid RegExp pattern - Unknown reason';
+    }
 
     return false;
+}
+
+/**
+ * Return the type of a specific variable, much like the standard 'typeof', only
+ * with a little more functionality. This is primarily used for input from
+ * libraries/packages/modules that may convert the variable to a different type
+ * when interacting with it. For example, pretty much anything passed through the
+ * URI parameters will be a string, as well as anything passed through GetOpts,
+ * but you may want integers, for example, to actually be identified as numbers, or
+ * true/false/null/undefined strings to be identified as boolean/null/undefined.
+ * That's what the scrutinize parameter does here, it will process the variable
+ * to attempt to identify the type it originally was.
+ *
+ * NOTE: If no type is matched, then the toString() value will be returned
+ *
+ * @name        module:_.typeof
+ * @function    module:_.typeof
+ * @memberof    module:_
+ * @param       {*}         value           Value to process
+ * @param       {boolean}   inspect         Determine if the true value type should be determined through logical 
+ *                                          processing
+ * @param       {object}    returnTypes     Object of return type strings to overwrite
+ * @param       {object}    flaggedVals     Values used to determine the real value types of flagged values (Only used 
+ *                                          if scrutinize is enabled)
+ * @returns     {string}    The variable type; The default type names are:
+ *                          undefined, null, string, boolean, array, element, date, regexp, object, number, function, unknown
+ *                       However, these can be overridden by providing an object as the 3rd parameter
+ * @example _.typeof( [1,2] )       // array
+ *          _.typeof( 'foo' )       // string
+ *          _.typeof( true )        // boolean
+ *          _.typeof( 'true' )      // string
+ *          _.typeof( 'true',true ) // boolean
+ *          _.typeof( null )        // null
+ *          _.typeof( 'null' )      // string
+ *          _.typeof( 'null',true ) // null
+ */
+function getTypeof(value, inspect, returnTypes, flaggedVals) {
+    // String representations of the value types (Overridden by returnTypes if defined)
+    var types = _.extend({
+        undefined: 'undefined',
+        null: 'null',
+        string: 'string',
+        boolean: 'boolean',
+        array: 'array',
+        element: 'element',
+        date: 'date',
+        regexp: 'regexp',
+        object: 'object',
+        number: 'number',
+        funct: 'function',
+        unknown: 'unknown'
+    }, returnTypes || {});
+
+    // Flagged values for string variables; EG: if string is 'true', then the it's Boolean (Overridden by
+    // flaggedVals if defined)
+    var flagged = _.extend({
+        boolean: ['true', 'false'],
+        null: ['null', 'NULL'],
+        undefined: ['undefined']
+    }, flaggedVals || {});
+
+    // Retrieve the actual object type from the prototype
+    //const objType = Object.prototype.toString.call( value )
+
+    // Attempt to regex match the type (value should be [object TYPE]
+    //const objTypeRegex = objType.match( /^\[object\s(.*)\]$/ )
+
+    /* $lab:coverage:off$ */
+    // Match the type, or use the types.undefined (This shouldn't ever not match)
+    //const objTypeString = objTypeRegex[1] ? objTypeRegex[1].toLowerCase() : types.unknown
+    /* $lab:coverage:on$ */
+
+    if (_.isUndefined(value)) {
+        return types.undefined;
+    }
+
+    if (_.isNull(value)) {
+        return types.null;
+    }
+
+    // String values are what get opened to scrutiny, if enabled
+    if (_.isString(value)) {
+        // If inspect isnt enabled, then just return string
+        if (!!inspect === false) {
+            return types.string;
+        }
+
+        // Numbers should be the same value if leniently compared against it's float-parsed self
+        if (Number(value) == value) {
+            return types.number;
+        }
+
+        // Check if this string is inside the boolean flags
+        if (_.indexOf(flagged.boolean, value) !== -1) {
+            return types.boolean;
+        }
+
+        // Check if its inside any null flags
+        if (_.indexOf(flagged.null, value) !== -1) {
+            return types.null;
+        }
+
+        // Check if its inside any undefined flags
+        if (_.indexOf(flagged.undefined, value) !== -1) {
+            return types.undefined;
+        }
+
+        // If no parser caught it, then it must be a string
+        return types.string;
+    }
+
+    // Certain check types can't be misconstrued as other types, unlike other types (such as objects), get those out
+    // of the way
+    if (_.isBoolean(value)) {
+        return types.boolean;
+    }
+
+    if (_.isNumber(value)) {
+        return types.number;
+    }
+
+    if (_.isDate(value)) {
+        return types.date;
+    }
+
+    if (_.isRegExp(value)) {
+        return types.regexp;
+    }
+
+    /* $lab:coverage:off$ */
+    // Disabling coverage for this, since unit testing is done via node
+    if (_.isElement(value)) {
+        return types.element;
+    }
+    /* $lab:coverage:on$ */
+
+    // Since isObject returns true for functions, check this before that
+    if (_.isFunction(value)) {
+        return types.funct;
+    }
+
+    // Since isObject also returns true for arrays, check that before as well
+    if (_.isArray(value)) {
+        return types.array;
+    }
+
+    // isObject should be last for any possible object 'types'
+    if (_.isObject(value)) {
+        return types.object;
+    }
+
+    /* $lab:coverage:off$ */
+    // If nothing else was caught, then return the type found via the prototypes toString() call
+    // Note: Disabling coverage, since I can't find a value to reach this, and it's just in case I missed something.
+    // It helps me sleep at night
+    return getType(value);
+    /* $lab:coverage:on$ */
 }
 
 var defaultMixins = {
@@ -1831,6 +2477,7 @@ var defaultMixins = {
     isCase: isCase,
     typeof: getTypeof,
     censor: censor,
+    plural: plural,
     isUniq: isUniq,
     sortObj: sortObj,
     isSnake: isSnake,
@@ -1844,7 +2491,9 @@ var defaultMixins = {
     strDist: strDist,
     isEmail: isEmail,
     endWith: endWith,
+    sumPaths: sumPaths,
     uniqObjs: uniqObjs,
+    valTypes: valTypes,
     replaceAt: replaceAt,
     mergeObjs: mergeObjs,
     isNumeric: isNumeric,
@@ -1853,8 +2502,8 @@ var defaultMixins = {
     removeObj: removeObj,
     utf8Encode: utf8Encode,
     utf8Decode: utf8Decode,
+    valueTypes: valTypes,
     pullSample: pullSample,
-    alternator: alternator,
     mysqlEscape: mysqlEscape,
     isCountable: isCountable,
     dontEndWith: dontEndWith,
@@ -1866,7 +2515,9 @@ var defaultMixins = {
     multiReplace: multiReplace,
     dontStartWith: dontStartWith,
     passwordVerify: passwordVerify,
-    pullSampleSize: pullSampleSize
+    pullSampleSize: pullSampleSize,
+    summarizePaths: sumPaths,
+    stripCommonRoot: stripCommonRoot
 };
 
 // Mixin the above functions into the fresh version of Lodash....
