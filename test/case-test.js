@@ -154,7 +154,5 @@ describe( '_.isCase mixin', () => {
         expect( _.isCase( 'upper', _.upperCase( str ) ) ).to.equal( true )
         done()
     } )
-
-
 })
 

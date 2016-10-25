@@ -981,7 +981,9 @@ function multiReplace ( str, replacements, modifiers ) {
             }
             
             // Shouldnt ever really get here, but I guess im just paranoid
-            throw new Error(`Replacement structure illegal - Array of non-array and non-object`)
+            else {
+                throw new Error(`Replacement structure illegal - Array of non-array and non-object`)
+            }
         } )
 
         replacements = replacementsObj
@@ -1786,12 +1788,17 @@ function isUpper ( str ) {
  * @memberof    module:_
  * @param       {string}    str     String to inspect
  * @returns     {(string|undefined)}  Will return one of: snake, camel, kebab, start, lower, upper or undefined if none
- * @note        ALPHA PHASE - Under Construction
+ * @note        ALPHA PHASE - Under Construction, needs a serious re-write
  * @example
  * var str = 'Hello World..'
  *  _.each()
  */
 function getCase ( str ) {
+    
+    if( isUpper( str ) ){
+        return 'upper'
+    }
+
     if( isSnake( str ) ){
         return 'snake'
     }
@@ -1810,10 +1817,6 @@ function getCase ( str ) {
 
     if( isLower( str ) ){
         return 'lower'
-    }
-    
-    if( isUpper( str ) ){
-        return 'upper'
     }
 
     return undefined

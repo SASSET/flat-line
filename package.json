@@ -19,12 +19,13 @@
   "license": "ISC",
   "devDependencies": {
     "babel-preset-es2015": "^6.16.0",
-    "code": "^2.1.0",
+    "code": "^2.3.0",
     "del": "^2.2.2",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "jsdoc-to-markdown": "^2.0.1",
     "jsdoc2md-anchors": "0.0.6",
+    "lab": "^11.1.0",
     "lodash": "^4.0.0",
     "yargs": "^6.0.0"
   },
