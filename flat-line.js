@@ -1,7 +1,7 @@
 'use strict'
 
 /**
- * @title Lodash Mixins aka moar-lodash
+ * @title Lodash Mixins aka flat-line
  * @description Extra useful Lodash mixins
  * @requires lodash, crypto, ./data.js
  *
@@ -11,9 +11,9 @@
  * Authors of borrowed functions are noted inside the functions themselves
  *
  * @author Justin Hyland (Mostly)
- * @url https://www.npmjs.com/package/moar-lodash
- * @see https://github.com/jhyland87/lodash-mixins
- * @version 2.6.1
+ * @url https://github.com/SASSET/flat-line
+ * @see https://github.com/SASSET/flat-line
+ * @version 0.1.0
  * @todo Split all functions into separate .js files; which can all be loaded by loading the index
  */
 

@@ -1,4 +1,3 @@
 module.exports = require(
-    //'./src/moar-lodash'
-    './dist/moar-lodash'
+    './flat-line'
 )

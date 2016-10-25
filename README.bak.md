@@ -17,59 +17,59 @@
 
 ## _
 
-* [_](#_)
-    * [.parameters](#parameters) ⇒ <code>Mixed</code>
-    * [.arguments](#arguments) ⇒ <code>number</code>
-    * [.arguments](#arguments) ⇒ <code>number</code>
-    * [.utf8Encode(str)](#utf8encodestr) ⇒ <code>string</code>
-    * [.utf8Decode(str)](#utf8decodestr) ⇒ <code>string</code>
-    * [.md5(str)](#md5str) ⇒ <code>string</code>
-    * [.stripCommonRoot(pathArray)](#stripcommonrootpatharray) ⇒ <code>array</code>
-    * [.sumPaths(pathArray)](#sumpathspatharray) ⇒ <code>Object</code> &#124; <code>string</code> &#124; <code>array</code>
-    * [.valTypes(collection, [filter])](#valtypescollection-filter) ⇒ <code>array</code>
-    * [.sha1(str)](#sha1str) ⇒ <code>string</code>
-    * [.makeHash(str, salt)](#makehashstr-salt) ⇒ <code>string</code>
-    * [.randStr(length)](#randstrlength) ⇒ <code>string</code>
-    * [.replaceAt(str, indexndex, character)](#replaceatstr-indexndex-character) ⇒ <code>string</code>
-    * [.getType(item)](#gettypeitem) ⇒ <code>string</code>
-    * [.multiReplace(str, replacements, modifiers)](#multireplacestr-replacements-modifiers) ⇒ <code>string</code>
-    * [.swap(obj)](#swapobj) ⇒ <code>object</code>
-    * [.uniqObjs(arr, arr[)](#uniqobjsarr-arr) ⇒ <code>array</code>
-    * [.isNumeric(num)](#isnumericnum) ⇒ <code>boolean</code>
-    * [.isEmail(email)](#isemailemail) ⇒ <code>boolean</code>
-    * [.sortMatch(object, source, [customizer])](#sortmatchobject-source-customizer) ⇒ <code>boolean</code>
-    * [.bool(value, trues, [lower])](#boolvalue-trues-lower) ⇒
-    * [.endWith(str, endChar)](#endwithstr-endchar) ⇒ <code>string</code>
-    * [.dontEndWith(str, endChar)](#dontendwithstr-endchar) ⇒ <code>string</code>
-    * [.startWith(str, startChar)](#startwithstr-startchar) ⇒ <code>string</code>
-    * [.dontStartWith(str, startChar)](#dontstartwithstr-startchar) ⇒ <code>string</code>
-    * [.nl2br(str, [br])](#nl2brstr-br) ⇒ <code>string</code>
-    * [.br2nl(str, [nl])](#br2nlstr-nl) ⇒ <code>string</code>
-    * [.censor(word, [masker], [maskType])](#censorword-masker-masktype) ⇒ <code>string</code>
-    * [.passwordHash(password)](#passwordhashpassword) ⇒ <code>string</code>
-    * [.passwordVerify(password, passwdHash)](#passwordverifypassword-passwdhash) ⇒ <code>boolean</code>
-    * [.sortObj(obj, comparator)](#sortobjobj-comparator) ⇒ <code>object</code>
-    * [.isUniq(collection, [element])](#isuniqcollection-element) ⇒ <code>boolean</code>
-    * [.removeObj(obj, del)](#removeobjobj-del) ⇒ <code>object</code>
-    * [.mysqlEscape(content)](#mysqlescapecontent) ⇒ <code>string</code>
-    * [.isSnake(str)](#issnakestr) ⇒ <code>boolean</code>
-    * [.isCamel(str)](#iscamelstr) ⇒ <code>boolean</code>
-    * [.isKebab(str)](#iskebabstr) ⇒ <code>boolean</code>
-    * [.isStart(str)](#isstartstr) ⇒ <code>boolean</code>
-    * [.isLower(str)](#islowerstr) ⇒ <code>boolean</code>
-    * [.isUpper(str)](#isupperstr) ⇒ <code>boolean</code>
-    * [.getCase(str)](#getcasestr) ⇒ <code>string</code> &#124; <code>undefined</code>
-    * [.isCase(theCase, str)](#iscasethecase-str) ⇒ <code>boolean</code>
-    * [.includesAll(collection, values, fromIndex)](#includesallcollection-values-fromindex) ⇒ <code>boolean</code>
-    * [.levenshtein(strA, strB)](#levenshteinstra-strb) ⇒ <code>number</code>
-    * [.strDist(strA, strB)](#strdiststra-strb) ⇒ <code>number</code>
-    * [.plural(str)](#pluralstr) ⇒ <code>string</code>
-    * [.mergeObjs([...sources])](#mergeobjssources) ⇒ <code>object</code>
-    * [.setException(item, [type])](#setexceptionitem-type) ⇒ <code>Mixed</code>
-    * [.pullSample(arr)](#pullsamplearr) ⇒ <code>Mixed</code>
-    * [.pullSampleSize(arr, size)](#pullsamplesizearr-size) ⇒ <code>array</code>
-    * [.validPattern(pattern, flags, reason)](#validpatternpattern-flags-reason) ⇒ <code>boolean</code> &#124; <code>string</code>
-    * [.typeof(value, inspect, returnTypes, flaggedVals)](#typeofvalue-inspect-returntypes-flaggedvals) ⇒ <code>string</code>
+* [_](#module__)
+    * [.parameters](#module__.parameters) ⇒ <code>Mixed</code>
+    * [.arguments](#module__.arguments) ⇒ <code>number</code>
+    * [.arguments](#module__.arguments) ⇒ <code>number</code>
+    * [.utf8Encode(str)](#module__.utf8Encode) ⇒ <code>string</code>
+    * [.utf8Decode(str)](#module__.utf8Decode) ⇒ <code>string</code>
+    * [.md5(str)](#module__.md5) ⇒ <code>string</code>
+    * [.stripCommonRoot(pathArray)](#module__.stripCommonRoot) ⇒ <code>array</code>
+    * [.sumPaths(pathArray)](#module__.sumPaths) ⇒ <code>Object</code> &#124; <code>string</code> &#124; <code>array</code>
+    * [.valTypes(collection, [filter])](#module__.valTypes) ⇒ <code>array</code>
+    * [.sha1(str)](#module__.sha1) ⇒ <code>string</code>
+    * [.makeHash(str, salt)](#module__.makeHash) ⇒ <code>string</code>
+    * [.randStr(length)](#module__.randStr) ⇒ <code>string</code>
+    * [.replaceAt(str, indexndex, character)](#module__.replaceAt) ⇒ <code>string</code>
+    * [.getType(item)](#module__.getType) ⇒ <code>string</code>
+    * [.multiReplace(str, replacements, modifiers)](#module__.multiReplace) ⇒ <code>string</code>
+    * [.swap(obj)](#module__.swap) ⇒ <code>object</code>
+    * [.uniqObjs(arr, arr[])](#module__.uniqObjs) ⇒ <code>array</code>
+    * [.isNumeric(num)](#module__.isNumeric) ⇒ <code>boolean</code>
+    * [.isEmail(email)](#module__.isEmail) ⇒ <code>boolean</code>
+    * [.sortMatch(object, source, [customizer])](#module__.sortMatch) ⇒ <code>boolean</code>
+    * [.bool(value, trues, [lower])](#module__.bool) ⇒
+    * [.endWith(str, endChar)](#module__.endWith) ⇒ <code>string</code>
+    * [.dontEndWith(str, endChar)](#module__.dontEndWith) ⇒ <code>string</code>
+    * [.startWith(str, startChar)](#module__.startWith) ⇒ <code>string</code>
+    * [.dontStartWith(str, startChar)](#module__.dontStartWith) ⇒ <code>string</code>
+    * [.nl2br(str, [br])](#module__.nl2br) ⇒ <code>string</code>
+    * [.br2nl(str, [nl])](#module__.br2nl) ⇒ <code>string</code>
+    * [.censor(word, [masker], [maskType])](#module__.censor) ⇒ <code>string</code>
+    * [.passwordHash(password)](#module__.passwordHash) ⇒ <code>string</code>
+    * [.passwordVerify(password, passwdHash)](#module__.passwordVerify) ⇒ <code>boolean</code>
+    * [.sortObj(obj, comparator)](#module__.sortObj) ⇒ <code>object</code>
+    * [.isUniq(collection, [element])](#module__.isUniq) ⇒ <code>boolean</code>
+    * [.removeObj(obj, del)](#module__.removeObj) ⇒ <code>object</code>
+    * [.mysqlEscape(content)](#module__.mysqlEscape) ⇒ <code>string</code>
+    * [.isSnake(str)](#module__.isSnake) ⇒ <code>boolean</code>
+    * [.isCamel(str)](#module__.isCamel) ⇒ <code>boolean</code>
+    * [.isKebab(str)](#module__.isKebab) ⇒ <code>boolean</code>
+    * [.isStart(str)](#module__.isStart) ⇒ <code>boolean</code>
+    * [.isLower(str)](#module__.isLower) ⇒ <code>boolean</code>
+    * [.isUpper(str)](#module__.isUpper) ⇒ <code>boolean</code>
+    * [.getCase(str)](#module__.getCase) ⇒ <code>string</code> &#124; <code>undefined</code>
+    * [.isCase(theCase, str)](#module__.isCase) ⇒ <code>boolean</code>
+    * [.includesAll(collection, values, fromIndex)](#module__.includesAll) ⇒ <code>boolean</code>
+    * [.levenshtein(strA, strB)](#module__.levenshtein) ⇒ <code>number</code>
+    * [.strDist(strA, strB)](#module__.strDist) ⇒ <code>number</code>
+    * [.plural(str)](#module__.plural) ⇒ <code>string</code>
+    * [.mergeObjs([...sources])](#module__.mergeObjs) ⇒ <code>object</code>
+    * [.setException(item, [type])](#module__.setException) ⇒ <code>Mixed</code>
+    * [.pullSample(arr)](#module__.pullSample) ⇒ <code>Mixed</code>
+    * [.pullSampleSize(arr, size)](#module__.pullSampleSize) ⇒ <code>array</code>
+    * [.validPattern(pattern, flags, reason)](#module__.validPattern) ⇒ <code>boolean</code> &#124; <code>string</code>
+    * [.typeof(value, inspect, returnTypes, flaggedVals)](#module__.typeof) ⇒ <code>string</code>
 
 
 -
@@ -85,7 +85,7 @@ Instructions:
          the first new parameter listed
      - Calling alternator() with NO parameters will reset the rotation to null, and return nothing
 
-**Kind**: static property of <code>[_](#_)</code>  
+**Kind**: static property of <code>[_](#module__)</code>  
 **Returns**: <code>Mixed</code> - Whatever array element is next in line, or nothing when resetting  
 **Todo**
 
@@ -106,7 +106,7 @@ for(i = 0; i< 6; i++)
 Return the maximum value of all arguments passed. This is the same thing as _.max,
 only instead of an array, it takes all the arguments
 
-**Kind**: static property of <code>[_](#_)</code>  
+**Kind**: static property of <code>[_](#module__)</code>  
 **Returns**: <code>number</code> - Maximum value, retrieved by _.max()  
 **Todo**
 
@@ -126,7 +126,7 @@ _.maxOf( 1, 20, 'a', ['test'], 1000 )
 Return the minimum value of all arguments passed. This is the same thing as _.min,
 only instead of an array, it takes all the arguments
 
-**Kind**: static property of <code>[_](#_)</code>  
+**Kind**: static property of <code>[_](#module__)</code>  
 **Returns**: <code>number</code> - Minimum value, retrieved by _.min()  
 **Todo**
 
@@ -146,7 +146,7 @@ _.minOf( 1, 20, 'a', ['test'], 1000 )
 Encodes an ISO-8859-1 string to UTF-8, this is meant to provide the same functionality
 as the PHP utf8_encode function.
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>string</code> - UTF-8 encoded version of the str param value  
 
 | Param | Type | Description |
@@ -167,7 +167,7 @@ _.utf8Encode('Hello World')
 Decodes a UTF-8 encoded string to the standard ISO-8859-1, this is meant to provide the same functionality
 as the PHP utf8_decode function.
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>string</code> - ISO-8859-1 decoded string  
 
 | Param | Type | Description |
@@ -189,7 +189,7 @@ Retrieve the md5sum value for a specific string.
 
 This source was taken from the PHP.js project, I take no credit for this code
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>string</code> - 32 character MD5 sum  
 **See**: http://phpjs.org/functions/md5/  
 **Author:** Not me (Justin Hyland)  
@@ -215,7 +215,7 @@ md5('Hello World') === 'b10a8db164e0754105b7a99be72e3fe5'
 Iterate through an array of absolute file paths, removing the common paths from each element. This is useful
 for when you don't need to have the entire absolute path in the name.
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>array</code> - Modified version of the provided array  
 
 | Param | Type | Description |
@@ -240,7 +240,7 @@ Gizmo.stripCommonRoot([
 Iterate through an array of absolute file paths, removing the common paths from each absolute path. The shortened 
 filenames are returned in an array, while the common path
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>Object</code> - pathObj         Object containing the common absolute path, and an array of files (with 
                                          paths relative to the common absolute path)<code>string</code> - pathObj.path    The absolute path up to the last common folder that all files share<code>array</code> - pathObj.files   Array of filenames, paths starting where {pathObj.path} left off  
 
@@ -269,7 +269,7 @@ _.sumPaths.summarizePaths([
 ### _.valTypes(collection, [filter]) ⇒ <code>array</code>
 Retrieve the types of values in an array or an object.
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>array</code> - Array of types of values in the collection  
 
 | Param | Type | Description |
@@ -304,7 +304,7 @@ Retrieve the types of values in an array or an object.
 Calculate the sha1 hash of a specific string. This is the equivalent of PHP's sha1()
 function.
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>string</code> - SHA1 hash  
 
 | Param | Type | Description |
@@ -324,7 +324,7 @@ _.sha1('test')
 ### _.makeHash(str, salt) ⇒ <code>string</code>
 Generate a hash of a given string, using the provided salt
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>string</code> - base64 encoded hash  
 
 | Param | Type | Description |
@@ -345,7 +345,7 @@ _.makeHash('superSecretPassword','secret-salt')
 ### _.randStr(length) ⇒ <code>string</code>
 Return a randomly generated string - at a specific length
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Todo**
 
 - [ ] Add the ability to specify the 'possible' string characters
@@ -370,7 +370,7 @@ Substitute specific characters within a string with a specified replacement.
 Replacement positions are specified by either a single (numeric) value, or an
 array of numeric values
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>string</code> - Parsed/modified version of the provided string  
 **Todo**
 
@@ -402,7 +402,7 @@ _.replaceAt( 'baz', 2, 'r')
 Return items true type by grabbing the 2nd string content from Object.prototype.toString.call, as opposed to the 
 less-specific 'typeof'
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>string</code> - Type of variable  
 
 | Param | Type | Description |
@@ -429,7 +429,7 @@ an object/array. Just a quicker/easier way than chaining .replace() over
 and over again. The replacements can be an array of arrays, an array of objects,
 or an object
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>string</code> - Parsed and modified version of the provided string  
 
 | Param | Type | Description |
@@ -455,7 +455,7 @@ _.multiReplace( 'test', { t: 'T'} )
 ### _.swap(obj) ⇒ <code>object</code>
 Swap the keys and values of a simple plain object
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>object</code> - Returns a version of the original object with the keys and values switched (wherever possible)  
 
 | Param | Type | Description |
@@ -472,11 +472,11 @@ _.swap({a:'b', c:'d'})
 
 <a name="module__.uniqObjs"></a>
 
-### _.uniqObjs(arr, arr[) ⇒ <code>array</code>
+### _.uniqObjs(arr, arr[]) ⇒ <code>array</code>
 Return a new array containing only the unique objects inside the provided
 array. Unlike _.uniq, this will check _every_ key/value in the array
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -501,7 +501,7 @@ Check if the provided number is a float or integer value. This just tacks
 a 2nd check onto lodashes isNumber, which uses a lenient comparative operator
 to check if the value of Number is the same as the provided number
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -528,7 +528,7 @@ _.isNumber( 123 )
 ### _.isEmail(email) ⇒ <code>boolean</code>
 Validate a string against an RFC822 compliant pattern
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -554,7 +554,7 @@ Check if two values match each other. Basically sorts the object and
 source, then passes it off to _.isMatch, (Since objects/arrays with
 same values in different orders would be considered discrepancies
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -580,7 +580,7 @@ variables, as well as convert the value to lower case (Since the string
 representations of the boolean values are lower). Also compares integer
 values
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: Boolean casted version of the provided value  
 
 | Param | Type | Default | Description |
@@ -610,7 +610,7 @@ _.bool( true ) === true
 ### _.endWith(str, endChar) ⇒ <code>string</code>
 Ensure a specific string ends with a certain character
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>string</code> - The string returned will be either the exact same string provided, or ${str + endChar} if 
                          the original string doesn't end with the endChar character  
 
@@ -634,7 +634,7 @@ _.endWith('/User/john.doe/Documents', '/')
 ### _.dontEndWith(str, endChar) ⇒ <code>string</code>
 Ensure a specific string DOESN'T end with a certain character
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>string</code> - The string returned will be either the exact same string provided, or a version of the
                          original string with the value of endChar removed from the end  
 **Todo**
@@ -660,7 +660,7 @@ _.dontEndWith('/v1/resource/name/', '/')
 ### _.startWith(str, startChar) ⇒ <code>string</code>
 Ensure a specific string starts with a certain character
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>string</code> - The string returned will be either the exact same string provided, or ${startChar + str} if 
                          the original string doesn't begin with the startChar character  
 
@@ -689,7 +689,7 @@ _.startWith('Documents/', '~/')
 ### _.dontStartWith(str, startChar) ⇒ <code>string</code>
 Ensure a specific string DOESN'T start with a certain character
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>string</code> - The string returned will be either the exact same string provided, or a version of the 
                          original string with the value of startChar removed from the beginning  
 **Todo**
@@ -716,7 +716,7 @@ _.dontStartWith('.unhide-me', '.')
 Convert any new-line characters to HTML Line breaks, which can optionally be specified,
 but defaults to just </br>. The replaced characters consists of \r\n, \n\r, \n and \r.
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>string</code> - Modified version of ${str}, with all new-line characters replaced with an HTML line break  
 **Todo**
 
@@ -744,7 +744,7 @@ Complete opposite of the _.nl2br - This replaces any HTML Line breaks with the l
 which can optionally be specified, but defaults to just \r\n. The HTML break replaced is </br>, <br>,
 </BR> or <BR>
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>string</code> - Modified version of ${str}, with all HTML line breaks replaced with new-line characters  
 **Todo**
 
@@ -776,7 +776,7 @@ website of words to ban:
 http://addons.teamspeak.com/directory/addon/miscellaneous-tools/TXT-English-badwords-bans-and-list.html
 Note: This only supports the English language, the dirty version
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>string</code> - Parsed and censored version of the provided word  
 
 | Param | Type | Default | Description |
@@ -800,7 +800,7 @@ Generate a salted hash of a specified password string - Similar to PHPs
 password_hash function, which returns a string with the hash AND the salt,
 making it easier to store in a database, and easier to verify
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>string</code> - 109 character password hash (salt is first 20 characters)  
 **Note**: Every password hash is generated by using a salt value that is randomly generated every time, this means 
              that the resulting hash will be different every time it executes, even if the passwords are the same  
@@ -825,7 +825,7 @@ const pwd1 = _.passwordHash('SomePass')
 ### _.passwordVerify(password, passwdHash) ⇒ <code>boolean</code>
 Verify a password against a password hash generated by _.passwordHash
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>boolean</code> - TRUE if the result of a hash generated with the
                          same password and the salt found in passwordHash,
                          matches the hash inside passwordHash  
@@ -849,7 +849,7 @@ const hashA = _.passwordHash( 'secret' )
 ### _.sortObj(obj, comparator) ⇒ <code>object</code>
 Return a copy of the object with the content sorted by the keys
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -876,7 +876,7 @@ const obj = {b: 3, c: 2, a: 1}
 Validate that an array, or objects in an array, or elements within the
 objects in an array are all unique
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -903,7 +903,7 @@ and returning a new object of said element(s)
 This is basically the same as lodashes _.remove method, except this works for Objects,
 not arrays.
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>object</code> - Object of items removed from obj param  
 **Note**: This will mutate the original object, removing the `del` element(s)  
 **Todo**
@@ -934,7 +934,7 @@ var testObj = { first: 'John', last: 'Doe', middle: 'w', age: 26, height: 75 }
 Escape a string, making it safe to use in a MySQL query. Based off of PHPs
 mysql_real_escape_string
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>string</code> - Safe version of the content string parameter  
 **Note**: ALPHA PHASE - Under Construction  
 
@@ -955,7 +955,7 @@ _.mysqlEscape( "Justin\\\\'s Boots" )
 ### _.isSnake(str) ⇒ <code>boolean</code>
 Check if a specified string is in snake_case format
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>boolean</code> - Returns True if the string is in case snake, False otherwise.  
 **Note**: ALPHA PHASE - Under Construction  
 
@@ -978,7 +978,7 @@ _.isSnake( _.snakeCase('Foo Bar') )
 ### _.isCamel(str) ⇒ <code>boolean</code>
 Check if a specified string is in camelCase format
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Note**: ALPHA PHASE - Under Construction  
 
 | Param | Type | Description |
@@ -1000,7 +1000,7 @@ _.isSnake( _.snakeCase('Foo Bar') )
 ### _.isKebab(str) ⇒ <code>boolean</code>
 Check if a specified string is in kebab-case format
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Note**: ALPHA PHASE - Under Construction  
 
 | Param | Type | Description |
@@ -1022,7 +1022,7 @@ _.isKebab( _.kebabCase('Foo Bar') )
 ### _.isStart(str) ⇒ <code>boolean</code>
 Check if a specified string is in Start Case format
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Note**: ALPHA PHASE - Under Construction  
 
 | Param | Type | Description |
@@ -1044,7 +1044,7 @@ _.isSnake( _.snakeCase('Foo Bar') )
 ### _.isLower(str) ⇒ <code>boolean</code>
 Check if a specified string is in lower case format
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -1065,7 +1065,7 @@ _.isLower( _.lowerCase('Foo Bar') )
 ### _.isUpper(str) ⇒ <code>boolean</code>
 Check if a specified string is in UPPER CASE format
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Note**: ALPHA PHASE - Under Construction  
 
 | Param | Type | Description |
@@ -1087,7 +1087,7 @@ _.isUpper( _.upperCase('Foo Bar') )
 ### _.getCase(str) ⇒ <code>string</code> &#124; <code>undefined</code>
 Retrieve the case type of a specified string
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>string</code> &#124; <code>undefined</code> - Will return one of: snake, camel, kebab, start, lower, upper or undefined if none  
 **Note**: ALPHA PHASE - Under Construction  
 
@@ -1108,7 +1108,7 @@ var str = 'Hello World..'
 ### _.isCase(theCase, str) ⇒ <code>boolean</code>
 Verify a string is in a specified format.
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Note**: ALPHA PHASE - Under Construction  
 
 | Param | Type | Description |
@@ -1132,7 +1132,7 @@ _.isCase( 'snake', _.snakeCase( 'Hello World' ) )
 Verify that a collection (string, array or object) has all listed values, basically
 just an array-friendly version of _.includes
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>boolean</code> - Returns `true` based on the result of _.includes  
 
 | Param | Type | Description |
@@ -1164,7 +1164,7 @@ to the length of the longer string provided (100% different). The higher the
 distance, the more different the strings are, but the distance can only be
 as high as high as the number of characters in the longer string
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>number</code> - Levenshtein distance value  
 **Note**: ALPHA PHASE - Under Construction  
 **Todo**
@@ -1193,7 +1193,7 @@ levenshtein( 'foo','foo' )
 String Difference Distance (In percentages). This basically returns
 the Levenshtein value as a percentage
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>number</code> - Levenshtein distance percentage (WITHOUT the % on the end)  
 **Todo**
 
@@ -1222,7 +1222,7 @@ strDist( 'foo','foo' )
 ### _.plural(str) ⇒ <code>string</code>
 Return the plural version of a string
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>string</code> - Plural version of same noun  
 **Todo**
 
@@ -1254,7 +1254,7 @@ This basically just hands everything off to _.merge, just adds an empty object t
 would be the same as
      _.mergeObjs( ObjsA, ObjsB )
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>object</code> - Newly merged object  
 
 | Param | Type | Description |
@@ -1274,7 +1274,7 @@ _.mergeObjs( { a: 1 }, { b: 2 }, { c: 3 } )
 ### _.setException(item, [type]) ⇒ <code>Mixed</code>
 Ensures the item is an instance of the exception specified by type
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>Mixed</code> - Returns an instance of Error, or whatevers specified by item  
 
 | Param | Type | Default | Description |
@@ -1301,7 +1301,7 @@ let err = 'Error Str'
 Pulls a sample from an array - Useful for when iterating over an array (manually), and having to remove the previous
 iterations
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>Mixed</code> - Whatever element was sampled from the array  
 **Note**: This method mutates the array, just as _.pull does  
 
@@ -1328,7 +1328,7 @@ var data = [ 100, 200 ]
 Pulls an array of samples from an array - Basically the same thing as _.pullSample, except this samples multiple
 elements, with the amount specified by the size parameter
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>array</code> - Array of one or more elements from arr  
 **Note**: This method mutates the array, just as _.pull does  
 
@@ -1353,7 +1353,7 @@ var data = [ 100, 200, 300, 400 ]
 ### _.validPattern(pattern, flags, reason) ⇒ <code>boolean</code> &#124; <code>string</code>
 Validation for legitimate regular expression pattern validation
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>boolean</code> &#124; <code>string</code> - If the pattern will work in a regexp check, then true  
 **Note**: This is best used when validating strings, as invalid regexp elements will throw an error before this
          function even gets a chance to validate. Meaning something like `_.validPattern(/a/asdf)` will throw an
@@ -1387,7 +1387,7 @@ to attempt to identify the type it originally was.
 
 NOTE: If no type is matched, then the toString() value will be returned
 
-**Kind**: static method of <code>[_](#_)</code>  
+**Kind**: static method of <code>[_](#module__)</code>  
 **Returns**: <code>string</code> - The variable type; The default type names are:
                          undefined, null, string, boolean, array, element, date, regexp, object, number, function, unknown
                       However, these can be overridden by providing an object as the 3rd parameter  
@@ -1420,10 +1420,10 @@ Extra useful Lodash mixins
 
 **Kind**: global constant  
 **Requires**: <code>module:lodash,</code>  
-**Title**: Lodash Mixins aka flat-line  
-**Url**: https://github.com/SASSET/flat-line  
-**See**: https://github.com/SASSET/flat-line  
-**Version**: 0.1.0  
+**Title**: Lodash Mixins aka moar-lodash  
+**Url**: https://www.npmjs.com/package/moar-lodash  
+**See**: https://github.com/jhyland87/lodash-mixins  
+**Version**: 2.6.1  
 **Author:** Justin Hyland (Mostly)  
 **Todo**
 

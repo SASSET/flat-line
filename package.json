@@ -1,18 +1,19 @@
 {
-  "name": "moar-lodash",
-  "version": "2.7.1",
+  "name": "flat-line",
+  "version": "0.1.0",
   "description": "Adding some other useful features to Lodash via the Mixins method",
-  "main": "index.js",
+  "main": "flat-line.js",
   "scripts": {
     "test": "lab"
   },
   "keywords": [
     "lodash",
-    "underscore"
+    "underscore",
+    "mixins"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jhyland87/moar-lodash.git"
+    "url": "git+https://github.com/SASSET/flat-line.git"
   },
   "author": "Justin Hyland",
   "license": "ISC",
@@ -22,6 +23,8 @@
     "del": "^2.2.2",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
+    "jsdoc-to-markdown": "^2.0.1",
+    "jsdoc2md-anchors": "0.0.6",
     "lodash": "^4.0.0",
     "yargs": "^6.0.0"
   },
