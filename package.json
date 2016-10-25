@@ -23,6 +23,7 @@
     "del": "^2.2.2",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
+    "jsdoc": "^3.4.2",
     "jsdoc-to-markdown": "^2.0.1",
     "jsdoc2md-anchors": "0.0.6",
     "lab": "^11.1.0",

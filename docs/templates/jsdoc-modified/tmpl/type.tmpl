@@ -1,0 +1,12 @@
+<?js
+    var data = obj;
+    var self = this;
+	    function getBaseName( name ){
+	    n = name.split( /(\.|\~|#|:)/ )
+	    return n[n.length-1]
+	}
+
+    data.forEach(function(name, i) { ?>
+<span class="param-type"><?js= self.linkto(name, getBaseName(self.htmlsafe(name))) ?></span>
+<?js if (i < data.length-1) { ?>|<?js } ?>
+<?js }); ?>

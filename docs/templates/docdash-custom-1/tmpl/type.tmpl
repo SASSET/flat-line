@@ -1,0 +1,28 @@
+<?js
+    var data = obj;
+    var self = this;
+    data.forEach(function(name, i) {  
+    	console.log('KEYS OF self:', Object.keys(self) ); 
+    	console.log('path:',self.path);
+    	console.log('cache:',self.cache);
+    	console.log('settings:',self.settings);
+    	console.log('outputSourceFiles:',self.outputSourceFiles);
+    	/*
+    	console.log(
+    	'\n\nValues -------------------------\n'
+    	+'=====> self.path:', self.path, ';\n'
+    	+'=====> self.layout:', self.layout, ';\n'
+    	+'=====> self.cache:', self.cache, ';\n'
+    	+'=====> self.settings:', self.settings, ';\n'
+    	+'=====> self.find:', self.find, ';\n'
+    	+'=====> self.linkto:', self.linkto, ';\n'
+    	+'=====> self.resolveAuthorLinks:', self.resolveAuthorLinks, ';\n'
+    	+'=====> self.tutoriallink:', self.tutoriallink, ';\n'
+    	+'=====> self.htmlsafe:', self.htmlsafe, ';\n'
+    	+'=====> self.outputSourceFiles:', self.outputSourceFiles, ';\n'
+    	+'=====> self.nav:', self.nav, ';\n--------------------\n')
+    	*/
+    	 ?>
+<span class="param-type"><?js= self.linkto(name, self.htmlsafe(name)) ?></span>
+<?js if (i < data.length-1) { ?>|<?js } ?>
+<?js }); ?>

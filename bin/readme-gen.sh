@@ -11,21 +11,21 @@ function get_dir_path {
 
 this_script="${BASH_SOURCE[0]}"
 this_dir=$(get_file_path "${this_script}")
-project_dir=$(get_dir_path "${this_dir}/../")
-node_modules_dir=$(get_dir_path "${project_dir}/node_modules/")
-readme_path="${project_dir}/README.md"
+project_root=$(get_dir_path "${this_dir}/../")
+node_modules_path=$(get_dir_path "${project_root}/node_modules/")
+readme_path="${project_root}/README.md"
 
 if [[ $1 == '-v' ]] || [[ $1 == '--verbose' ]]; then
 	echo "This Script: ${this_script}"
 	echo "Scripts Dir: ${this_dir}"
-	echo "Project Dir: ${project_dir}"
-	echo "Node Modules Dir: ${node_modules_dir}"
+	echo "Project Root: ${project_root}"
+	echo "Node Modules Path: ${node_modules_path}"
+	echo "Readme Path: ${readme_path}"
 fi
-
 
 echo -n "Generating readme file at: ${readme_path}... "
 
-node "${node_modules_dir}/jsdoc-to-markdown/bin.js" --files "${project_dir}/flat-line.js"  --separators | node "${node_modules_dir}/jsdoc2md-anchors/bin/jsdoc2md-anchors.js" > "${project_dir}/README.md"
+node "${node_modules_path}/jsdoc-to-markdown/bin.js" --files "${project_root}/flat-line.js"  --separators | node "${node_modules_path}/jsdoc2md-anchors/bin/jsdoc2md-anchors.js" > "${project_root}/README.md"
 
 if [[ $? -ne 0 ]]; then
 	echo "Failed to create README file..."

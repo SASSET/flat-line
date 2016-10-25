@@ -1089,7 +1089,7 @@ Retrieve the case type of a specified string
 
 **Kind**: static method of <code>[_](#_)</code>  
 **Returns**: <code>string</code> &#124; <code>undefined</code> - Will return one of: snake, camel, kebab, start, lower, upper or undefined if none  
-**Note**: ALPHA PHASE - Under Construction  
+**Note**: ALPHA PHASE - Under Construction, needs a serious re-write  
 
 | Param | Type | Description |
 | --- | --- | --- |
