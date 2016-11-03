@@ -50,6 +50,346 @@ const _internals = {
     }
 }
 
+function generateSlug(){
+    // https://confluence.atlassian.com/bitbucket/what-is-a-slug-224395839.html
+}
+
+/**
+ * Partition Key Generator - Mimics the Jira Project key generation
+ *
+ * Rules:
+ * - First character must be a letter
+ * - All letters must be from teh Modern Roman Alphabet, and in upper case format
+ * - Only letters, numbers or the underscore character can be used
+ *
+ * @todo    Make an option to grab the first uppercase alpha characters from the words, instead of just the first alpha
+ * @todo    Add the ability to require a minimum length
+ * @example // Generate a key thats 3 characters or less, provided an array of existing keys to validate a unique result
+ * _.generateKey( 'Foo Bar Baz', 3, [ 'FBB', 'FB1', 'FB2' ] )
+ * // => FB3
+ *
+ * @example // Generate a key thats 5 characters or less, using a function to validate the unique key
+ * _.generateKey( '1st Project: Foo Bar Baz', 5, key => _.indexOf( [ 'PFBB', 'PFBB1', 'PFBB2'], key ) === -1 )
+ * // => PFBB3
+ */
+function generateKey( cfgOrName, maxLength, unique, condenseDupChars ){
+    // Functions to validate the parameter values
+    var paramValidators = {
+        /**
+         * Name - Needs to contain some alpha characters (_.isString would pass a value containing only numbers 
+         * or special characters)
+         */
+        name:       name => !( _.isEmpty( name ) || ! _.isFunction( name.match ) || ! name.match( /[a-zA-Z]/ ) ),
+        /**
+         * Length - Needs to be a positive numeric value (_.isNumber or _.isInteger fails for numerical strings)
+         */
+        maxLength:  leng => ( parseInt( leng ) == leng && leng > 0 ),
+        /**
+         * Unique value - Needs to be an array (of existing values), a function (which accepts a string and 
+         * verifies its unique) or false (disabling unique validations)
+         */
+        unique:     uniq => ( _.isArray( uniq ) || _.isFunction( uniq ) || uniq === false ),
+        /**
+         * Condense Duplicates - Boolean only
+         */
+        condense:   cond => ( _.isBoolean( cond ) )
+    }
+    
+    // Set default values in the initial cfg object
+    var cfg = {
+        name    : null,
+        length  : 5,
+        unique  : null,
+        condense: false,
+        regex   : {
+            /**
+             * To
+             */
+            segment: '[a-zA-Z0-9-]+'
+        }
+    }
+    
+    var valInfo = val => `Value Type: ${Object.prototype.toString.call( val )}; Value (JSON): ${JSON.stringify(val)}`
+
+    // If the first parameter is an object, then its expected to hold all the values
+    if ( _.isObject( arguments[0] ) ){
+        console.debug('cfgOrName: ', cfgOrName)
+        console.debug('arguments[0]: ', arguments[0])
+        
+        // Iterate over the items in the first parameter, processing each value as a config item, based on the key
+        _.forEach( arguments[0], ( value, key ) => {
+            //paramInfo = `Key: ${key}; Value Type: ${Object.prototype.toString.call( value )}; Value (JSON): ${JSON.stringify(value)}`
+        
+            //console.debug( '> KEY: %s; VALUE: %s', key, JSON.stringify(value))
+            // Use a switch statement to accommodate aliases for the setting names
+            switch( _.toLower( key ) ){
+                case 'name':
+                case 'title':
+                    if ( ! paramValidators.name( value ) ){
+                        throw new Error( `Invalid value provided for the name/title (Key: ${key}; ${valInfo(value)})` )
+                    }
+                    
+                    cfg.name = value
+                    break
+                    
+                case 'maxlength':
+                case 'max':
+                case 'length':
+                case 'limit':
+                    if ( ! paramValidators.maxLength( value ) ){
+                        throw new Error( `Invalid value provided for the maximum length (Key: ${key}; ${valInfo(value)})` )
+                    }
+                    
+                    cfg.length = parseInt( value )
+                    break
+                    
+                case 'unique':
+                case 'distinct':
+                    if ( ! paramValidators.unique( value ) ){
+                        throw new Error( `Invalid value provided for the unique validator (Key: ${key}; ${valInfo(value)})` )
+                    }
+                    
+                    cfg.unique = value
+                    break
+                    
+                case 'condensedupchars':
+                case 'condenseduplicatechars':
+                case 'condenseduplicates':
+                case 'condenseduplicate':
+                case 'condensedups':
+                case 'condense':
+                case 'condensedup':
+                    if ( ! paramValidators.condense( value ) ){
+                        throw new Error( `Invalid value provided for the duplicate character condenser (Key: ${key}; ${valInfo(value)})` )
+                    }   
+                    
+                    cfg.condense = !!value          
+                    break
+                    
+                default:
+                    console.warn( `Unknown setting found in the object provided - Key: ${key}; ${valInfo(value)}` )
+                    break
+            }
+        })
+    }
+
+    // If its not an object, but there were parameters provided, then process the other parameters
+    else if ( ! _.isEmpty( arguments ) ){
+        // Name  ------------------------------
+        if ( ! paramValidators.name( cfgOrName ) ){
+            throw new Error( `Invalid value provided for the name/title (${valInfo(cfgOrName)})` )
+        }
+                    
+        cfg.name = cfgOrName
+
+        // Max Length -------------------------
+        if ( ! _.isUndefined( maxLength ) ){
+            if ( ! paramValidators.maxLength( maxLength ) ){
+                throw new Error( `Invalid value provided for the maximum length (${valInfo(maxLength)})` )
+            }
+                        
+            cfg.length = parseInt( maxLength )
+        }
+
+
+        // Unique Validator -------------------
+        if ( ! _.isUndefined( unique ) ){
+            if ( ! paramValidators.unique( unique ) ){
+                throw new Error( `Invalid value provided for the unique validator (${valInfo(unique)})` )
+            }
+                        
+            cfg.unique = unique
+        }
+
+
+        // Condense Duplicate Chars -----------
+        if ( ! _.isUndefined( condenseDupChars ) ){
+            if ( ! paramValidators.condense( condenseDupChars ) ){
+                throw new Error( `Invalid value provided for the duplicate character condenser (${valInfo(condenseDupChars)})` )
+            }   
+                        
+            cfg.condense = !!condenseDupChars   
+        }
+    }
+
+    // 
+    else {
+        //throw new Error( 'Invalid or undefined values provided' )
+        return undefined
+    }
+
+    // Convert the unique config value to an executable function 
+    cfg.unique =( uniqueCfg => {
+        // If its already a function, just return it
+        if ( _.isFunction( uniqueCfg ) ){
+            return uniqueCfg
+        }
+
+        // If its an array, return a function that verifies it doesn't contain the param
+        if ( _.isArray( uniqueCfg ) ){
+            return v => _.indexOf( uniqueCfg, v ) === -1
+        }
+
+        // For anything else, return a function that always returns true, effectively disabling unique validation
+        return () => true
+    })( cfg.unique )
+
+    // Convert the regex string to a real regex object
+    cfg.segRegex = new RegExp( cfg.regex.segment, 'g' )
+    
+        
+    /**
+     * Takes a string and returns a version of said string:
+     *  - Converted to uppercase
+     *  - Starting with an alpha character (first alpha character found in the string)
+     *  - Any non-alphanumeric or underscore characters removed
+     * @see https://confluence.atlassian.com/adminjiraserver071/changing-the-project-key-format-802592378.html
+     */
+    let _sanitizeStr = function( _pName ){
+        _pName = _.toUpper( _pName )
+
+        // Strip any non-alpha characters from the beginning
+        _pName = _pName.replace(/^[^A-Z]*/g, "")
+
+        // Remove anything thats not alpha-numeric or an underscore
+        _pName = _pName.replace(/[^A-Z0-9_]+/g, " ")
+
+        _pName = _.trim( _pName )
+        
+        if ( ! _pName ){
+            return false
+        }
+        
+        return _pName
+    }
+    
+    // Function to check if the key is unique or not (by using isUniqueOrList, either as an array of existing keys, or a function to check)
+    let _makeUnique = function( _key ){
+        let i = 0,
+            uniqueKey = _key,
+            isUnique = false,
+            m, result
+
+        do {
+            // Only append the numerical value if its non-zero
+            if ( i !== 0 ){
+                //k = key.substring( 0, key.length - i.toString().length ) + i.toString()
+                uniqueKey = _key + i.toString()
+
+                // If the concatenated key and numerical value is greater than the key size, then trim the difference
+                // off of the key
+                if ( uniqueKey.length > cfg.length ){
+                    uniqueKey = _key.substring( 0, _key.length - i.toString().length ) + i.toString()
+                }
+            }
+
+            isUnique = cfg.unique( uniqueKey )
+
+            /*
+            // If a function was provided for the unique validation, then execute that (providing the key). A response 
+            // of 'true' means its unique
+            if ( _.isFunction( isUniqueOrList ) ) {
+                isUnique = isUniqueOrList( k )
+            }
+            // If an array was provided, then verify the generated key is *not* in that array
+            else if ( _.isArray( isUniqueOrList ) ) {
+                isUnique = _.indexOf( isUniqueOrList, k ) === -1
+            }
+            // If the isUniqueOrList param *was* defined, but not as a function or an array, then throw an exception
+            else if ( ! _.isUndefined( isUniqueOrList ) ) {
+                throw new Error( `Expected the unique validation parameter to be a function, array, or undefined - received typeof: ${typeof isUniqueOrList}` )
+            }
+            // If nothing was provided for the unique validation, then just assume its unique
+            else {
+                isUnique = true
+            }
+            */
+
+            i += 1
+        } while ( ! isUnique )
+
+        return uniqueKey
+    }
+    
+    let key = ''
+    let origName = cfg.name
+    let name = cfg.name
+
+    
+    name = _sanitizeStr( name )
+    
+    if ( ! name ){
+        console.error( 'Failed to generate key for the partition name "%s" - The sanitized version of the name was empty' )
+        return
+    }
+
+
+    let nameSegments = _.words( name, cfg.segRegex )
+
+    // https://lodash.com/docs/4.16.6#words
+    
+    // If there arent enough 'words' in the partition name to generate a decent key, then just use the first characters of the partition name itself
+    if ( nameSegments.length < cfg.length ){
+        key = name.substr( 0, cfg.length )
+    }
+    else {
+        let char
+        // These two are only used if cfg.condense is enabled
+        let dupCount = 0
+        let lastChar
+        
+         _.forEach( nameSegments, s => {
+            char = _.toUpper( s.charAt(0) )
+
+            if ( s.match( /[a-zA-Z]/ ) ){
+
+            }
+            else {
+
+            }
+                        
+            // If duplicate character condensing is enabled, then keep track of the duplicates 
+            // (changing a key that would be FOOOD to F03D)
+            if ( cfg.condense === true ){
+                // If the current char is the same as the last, then increment the dup count
+                if ( char === lastChar && char.match( /[A-Z]/ ) ){
+                    // If this is the first detected duplicate, then increment twice, since were now on the 2nd character
+                    if ( dupCount === 0 ){
+                        dupCount++
+                    }
+
+                    dupCount++
+                    
+                    return
+                }
+                
+                // If its not the same, but we just ended a duplicate character count, then add the duplicate count
+                if ( dupCount > 0 ) {
+                    key += dupCount.toString()
+
+                    dupCount = 0
+                }
+                
+                lastChar = char
+            }           
+            
+            key += char
+        })
+
+
+        if ( key.length > cfg.length ){
+            key = key.substring( 0, cfg.length )
+        }
+    }
+
+    if ( ! _.size( key ) ){
+        return
+    }
+    
+    key = _makeUnique( key )
+        
+    return key
+}
 
 /**
  * Encodes an ISO-8859-1 string to UTF-8, this is meant to provide the same functionality
@@ -2528,6 +2868,7 @@ const defaultMixins = {
     utf8Decode: utf8Decode,
     valueTypes: valTypes,
     pullSample: pullSample,
+    generateKey: generateKey,
     mysqlEscape: mysqlEscape,
     isCountable: isCountable,
     dontEndWith: dontEndWith,
