@@ -64,6 +64,7 @@ function generateSlug(){
  *
  * @todo    Make an option to grab the first uppercase alpha characters from the words, instead of just the first alpha
  * @todo    Add the ability to require a minimum length
+ * @todo    Add the ability to require a minimum amount of alpha characters in the key (EG: If the minimum is 3, then 'str99' is ok, but 'st100' would fail )
  * @example // Generate a key thats 3 characters or less, provided an array of existing keys to validate a unique result
  * _.generateKey( 'Foo Bar Baz', 3, [ 'FBB', 'FB1', 'FB2' ] )
  * // => FB3
@@ -73,6 +74,20 @@ function generateSlug(){
  * // => PFBB3
  */
 function generateKey( cfgOrName, maxLength, unique, condenseDupChars ){
+    var debug = false
+    var _l = {
+        out: function( type, args ){
+            if ( debug ){
+                console[ type ].apply( null, args )
+            }
+        },
+        l: function(){ _l.out( 'log', arguments ) },
+        d: function(){ _l.out( 'debug', arguments ) },
+        w: function(){ _l.out( 'warn', arguments ) },
+        e: function(){ _l.out( 'error', arguments ) },
+    }
+
+    
     // Functions to validate the parameter values
     var paramValidators = {
         /**
@@ -113,8 +128,6 @@ function generateKey( cfgOrName, maxLength, unique, condenseDupChars ){
 
     // If the first parameter is an object, then its expected to hold all the values
     if ( _.isObject( arguments[0] ) ){
-        console.debug('cfgOrName: ', cfgOrName)
-        console.debug('arguments[0]: ', arguments[0])
         
         // Iterate over the items in the first parameter, processing each value as a config item, based on the key
         _.forEach( arguments[0], ( value, key ) => {
@@ -126,7 +139,8 @@ function generateKey( cfgOrName, maxLength, unique, condenseDupChars ){
                 case 'name':
                 case 'title':
                     if ( ! paramValidators.name( value ) ){
-                        throw new Error( `Invalid value provided for the name/title (Key: ${key}; ${valInfo(value)})` )
+                        //throw new Error( `Invalid value provided for the name/title (Key: ${key}; ${valInfo(value)})` )
+                        return
                     }
                     
                     cfg.name = value
@@ -137,7 +151,8 @@ function generateKey( cfgOrName, maxLength, unique, condenseDupChars ){
                 case 'length':
                 case 'limit':
                     if ( ! paramValidators.maxLength( value ) ){
-                        throw new Error( `Invalid value provided for the maximum length (Key: ${key}; ${valInfo(value)})` )
+                        //throw new Error( `Invalid value provided for the maximum length (Key: ${key}; ${valInfo(value)})` )
+                        return
                     }
                     
                     cfg.length = parseInt( value )
@@ -146,7 +161,8 @@ function generateKey( cfgOrName, maxLength, unique, condenseDupChars ){
                 case 'unique':
                 case 'distinct':
                     if ( ! paramValidators.unique( value ) ){
-                        throw new Error( `Invalid value provided for the unique validator (Key: ${key}; ${valInfo(value)})` )
+                        //throw new Error( `Invalid value provided for the unique validator (Key: ${key}; ${valInfo(value)})` )
+                        return
                     }
                     
                     cfg.unique = value
@@ -160,7 +176,8 @@ function generateKey( cfgOrName, maxLength, unique, condenseDupChars ){
                 case 'condense':
                 case 'condensedup':
                     if ( ! paramValidators.condense( value ) ){
-                        throw new Error( `Invalid value provided for the duplicate character condenser (Key: ${key}; ${valInfo(value)})` )
+                        //throw new Error( `Invalid value provided for the duplicate character condenser (Key: ${key}; ${valInfo(value)})` )
+                        return
                     }   
                     
                     cfg.condense = !!value          
@@ -177,7 +194,8 @@ function generateKey( cfgOrName, maxLength, unique, condenseDupChars ){
     else if ( ! _.isEmpty( arguments ) ){
         // Name  ------------------------------
         if ( ! paramValidators.name( cfgOrName ) ){
-            throw new Error( `Invalid value provided for the name/title (${valInfo(cfgOrName)})` )
+            _l.e( 'Invalid value provided for the name/title (%s)', valInfo( cfgOrName ) )
+            return
         }
                     
         cfg.name = cfgOrName
@@ -185,7 +203,7 @@ function generateKey( cfgOrName, maxLength, unique, condenseDupChars ){
         // Max Length -------------------------
         if ( ! _.isUndefined( maxLength ) ){
             if ( ! paramValidators.maxLength( maxLength ) ){
-                throw new Error( `Invalid value provided for the maximum length (${valInfo(maxLength)})` )
+                _l.w( 'Invalid value provided for the maximum length (%s)', valInfo( cfgOrName ) )
             }
                         
             cfg.length = parseInt( maxLength )
@@ -195,7 +213,7 @@ function generateKey( cfgOrName, maxLength, unique, condenseDupChars ){
         // Unique Validator -------------------
         if ( ! _.isUndefined( unique ) ){
             if ( ! paramValidators.unique( unique ) ){
-                throw new Error( `Invalid value provided for the unique validator (${valInfo(unique)})` )
+                _l.w( 'Invalid value provided for the unique validator (%s)', valInfo( cfgOrName ) )
             }
                         
             cfg.unique = unique
@@ -205,7 +223,7 @@ function generateKey( cfgOrName, maxLength, unique, condenseDupChars ){
         // Condense Duplicate Chars -----------
         if ( ! _.isUndefined( condenseDupChars ) ){
             if ( ! paramValidators.condense( condenseDupChars ) ){
-                throw new Error( `Invalid value provided for the duplicate character condenser (${valInfo(condenseDupChars)})` )
+                _l.w( 'Invalid value provided for the duplicate character condenser (%s)', valInfo( cfgOrName ) )
             }   
                         
             cfg.condense = !!condenseDupChars   
@@ -219,7 +237,8 @@ function generateKey( cfgOrName, maxLength, unique, condenseDupChars ){
     }
 
     // Convert the unique config value to an executable function 
-    cfg.unique =( uniqueCfg => {
+    cfg.isUnique = ( uniqueCfg => {
+        console.log('[cfg.unique IIFE] PARAM uniqueCfg:',uniqueCfg)
         // If its already a function, just return it
         if ( _.isFunction( uniqueCfg ) ){
             return uniqueCfg
@@ -263,50 +282,79 @@ function generateKey( cfgOrName, maxLength, unique, condenseDupChars ){
         return _pName
     }
     
+    // Internal function to shorten a string by taking one or more characters off of the end
+    let _shortenStr = function( _str, _len  ) {
+        if ( ! _str || _len == 0 ) return
+
+        _str = _.toString( _str )
+
+        if ( _.isUndefined( _len ) ){
+            _len = 1
+        }
+        else if ( parseInt( _len ) != _len ){
+            _l.w( 'Unable to use the value "%s" as the shortening length - value is not an integer', _len )
+            _len = 1
+        }
+        else {
+            _len = parseInt( _len )
+        }
+
+        if ( ! _str || ! _.isString( _str ) || ! _str.hasOwnProperty('length') || _str.length < 1 || (_str.length - _len) < 1 ) {
+            _l.w( 'Unable to shorten the string - either due to an invalid value, or the resulting value is zero length (String: "%s"; Trim Length: ")', _str, _len )
+                
+            return
+        }
+
+        return _str.substring( 0, _str.length - _len )
+    }
+    
     // Function to check if the key is unique or not (by using isUniqueOrList, either as an array of existing keys, or a function to check)
     let _makeUnique = function( _key ){
-        let i = 0,
-            uniqueKey = _key,
-            isUnique = false,
+        let i           = 0,
+            // Store the original key as it is before any changes
+            origBaseKey = _key,
+            // Base key is the portion of the key getting modified, without the numerical values 
+            baseKey     = _key,
+            // The modified base key and the numerical incremented digits concatenated together
+            uniqueKey   = _key,
+            // When the value of uniqueKey is verified to be unique (by cfg.unique), this is set to true
+            isUnique    = false,
+            // misc
             m, result
 
         do {
+            if ( baseKey.length < i.toString().length ){
+                return
+            }
+            
             // Only append the numerical value if its non-zero
             if ( i !== 0 ){
-                //k = key.substring( 0, key.length - i.toString().length ) + i.toString()
-                uniqueKey = _key + i.toString()
+                uniqueKey = baseKey + i.toString()
 
                 // If the concatenated key and numerical value is greater than the key size, then trim the difference
                 // off of the key
                 if ( uniqueKey.length > cfg.length ){
-                    uniqueKey = _key.substring( 0, _key.length - i.toString().length ) + i.toString()
+                    var was = uniqueKey
+                    
+                    baseKey = _shortenStr( baseKey, baseKey.length - (baseKey.length - i.toString().length) )
+                    
+                    if ( ! baseKey ){
+                        return 
+                    }
+                    
+                    uniqueKey = baseKey + i.toString()
                 }
             }
 
-            isUnique = cfg.unique( uniqueKey )
-
-            /*
-            // If a function was provided for the unique validation, then execute that (providing the key). A response 
-            // of 'true' means its unique
-            if ( _.isFunction( isUniqueOrList ) ) {
-                isUnique = isUniqueOrList( k )
+            isUnique = cfg.isUnique( uniqueKey )
+            
+            if ( uniqueKey.length > cfg.length ){
+                _l.w( 'Invalid value provided for the maximum length (%s)', valInfo( cfgOrName ) )
             }
-            // If an array was provided, then verify the generated key is *not* in that array
-            else if ( _.isArray( isUniqueOrList ) ) {
-                isUnique = _.indexOf( isUniqueOrList, k ) === -1
-            }
-            // If the isUniqueOrList param *was* defined, but not as a function or an array, then throw an exception
-            else if ( ! _.isUndefined( isUniqueOrList ) ) {
-                throw new Error( `Expected the unique validation parameter to be a function, array, or undefined - received typeof: ${typeof isUniqueOrList}` )
-            }
-            // If nothing was provided for the unique validation, then just assume its unique
-            else {
-                isUnique = true
-            }
-            */
-
+    
             i += 1
-        } while ( ! isUnique )
+        } 
+        while ( isUnique !== true )
 
         return uniqueKey
     }
